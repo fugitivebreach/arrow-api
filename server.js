@@ -100,8 +100,10 @@ app.use(session({
     mongoUrl: process.env.MONGODB_URI
   }) : undefined,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    secure: false, // Disable secure cookies for now to test
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    sameSite: 'lax'
   }
 }));
 
