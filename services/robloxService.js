@@ -24,16 +24,54 @@ class RobloxService {
         console.log(`Roblox API - User check failed:`, userError.response?.status, userError.response?.data);
       }
       
-      // Use public API to get user's groups
-      const response = await axios.get(
-        `${this.usersURL}/users/${userId}/groups/roles`,
-        {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-          },
-          timeout: 10000
+      // Try multiple endpoints - the v1 endpoint might have issues
+      let response;
+      try {
+        // First try the v1 endpoint
+        response = await axios.get(
+          `${this.usersURL}/users/${userId}/groups/roles`,
+          {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            },
+            timeout: 10000
+          }
+        );
+      } catch (v1Error) {
+        console.log(`Roblox API - v1 groups endpoint failed, trying alternative...`);
+        // Try the groups API from the group side
+        try {
+          const groupResponse = await axios.get(
+            `${this.baseURL}/groups/${groupId}/users`,
+            {
+              headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+              },
+              timeout: 10000
+            }
+          );
+          
+          // Check if user is in the group members list
+          if (groupResponse.data && groupResponse.data.data) {
+            const userInGroup = groupResponse.data.data.find(member => member.user.userId === parseInt(userId));
+            if (userInGroup) {
+              console.log(`Roblox API - Found user in group via group members endpoint`);
+              return {
+                membership: 'In group',
+                rankName: userInGroup.role.name,
+                rankID: userInGroup.role.rank,
+                groupName: `Group ${groupId}`,
+                groupID: parseInt(groupId)
+              };
+            }
+          }
+        } catch (groupError) {
+          console.log(`Roblox API - Group members endpoint also failed:`, groupError.response?.status);
         }
-      );
+        
+        // If both fail, throw the original error
+        throw v1Error;
+      }
 
       console.log(`Roblox API - Response status: ${response.status}`);
       console.log(`Roblox API - Response data structure:`, {
