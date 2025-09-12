@@ -11,24 +11,42 @@ const connectDB = async () => {
     }
 
     console.log('Attempting MongoDB connection...');
-    client = new MongoClient(process.env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 10000,
+    
+    // Wrap the connection attempt to prevent unhandled promise rejections
+    const connectionPromise = new Promise(async (resolve, reject) => {
+      try {
+        client = new MongoClient(process.env.MONGODB_URI, {
+          serverSelectionTimeoutMS: 3000,
+          connectTimeoutMS: 5000,
+        });
+        
+        await client.connect();
+        db = client.db();
+        resolve();
+      } catch (err) {
+        reject(err);
+      }
     });
-    
-    await client.connect();
-    db = client.db();
-    
+
+    await connectionPromise;
     console.log('MongoDB Connected successfully');
-    
-    // Initialize default API keys if none exist
     await initializeApiKeys();
+    
   } catch (error) {
-    console.error('Database connection error:', error.message);
+    console.error('Database connection failed:', error.message);
     console.warn('Continuing without database connection...');
-    // Don't crash the app, just continue without DB
     db = null;
     client = null;
+    
+    // Ensure any partial connections are cleaned up
+    if (client) {
+      try {
+        await client.close();
+      } catch (closeError) {
+        // Ignore close errors
+      }
+      client = null;
+    }
   }
 };
 

@@ -40,10 +40,24 @@ app.get('/health', (req, res) => {
 
 // Connect to MongoDB (with error handling for Railway)
 if (process.env.MONGODB_URI) {
-  connectDB().catch(err => console.error('DB connection failed:', err));
+  connectDB().catch(err => {
+    console.error('DB connection failed:', err.message);
+    console.log('Server continuing without database...');
+  });
 } else {
   console.warn('MONGODB_URI not set, skipping database connection');
 }
+
+// Add global error handlers to prevent crashes
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error.message);
+  console.log('Server continuing...');
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  console.log('Server continuing...');
+});
 
 // View engine setup
 app.set('view engine', 'ejs');
