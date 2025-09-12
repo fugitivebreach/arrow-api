@@ -39,6 +39,8 @@ class RobloxService {
         );
       } catch (v1Error) {
         console.log(`Roblox API - v1 groups endpoint failed, trying alternative...`);
+        console.log(`Roblox API - Trying group members endpoint: ${this.baseURL}/groups/${groupId}/users`);
+        
         // Try the groups API from the group side
         try {
           const groupResponse = await axios.get(
@@ -50,6 +52,8 @@ class RobloxService {
               timeout: 10000
             }
           );
+          
+          console.log(`Roblox API - Group members endpoint success, checking ${groupResponse.data?.data?.length || 0} members`);
           
           // Check if user is in the group members list
           if (groupResponse.data && groupResponse.data.data) {
@@ -63,14 +67,28 @@ class RobloxService {
                 groupName: `Group ${groupId}`,
                 groupID: parseInt(groupId)
               };
+            } else {
+              console.log(`Roblox API - User ${userId} not found in group ${groupId} members list`);
+              return { membership: 'Not in group' };
             }
           }
         } catch (groupError) {
-          console.log(`Roblox API - Group members endpoint also failed:`, groupError.response?.status);
+          console.log(`Roblox API - Group members endpoint also failed:`, {
+            status: groupError.response?.status,
+            statusText: groupError.response?.statusText,
+            url: `${this.baseURL}/groups/${groupId}/users`,
+            data: groupError.response?.data
+          });
+          
+          // Return the groups not visible error since both endpoints failed
+          return { 
+            membership: 'Groups not visible',
+            error: `User ${userId} has privacy settings that prevent group visibility or groups endpoint is restricted`
+          };
         }
         
-        // If both fail, throw the original error
-        throw v1Error;
+        // This shouldn't be reached, but just in case
+        return { membership: 'Not in group' };
       }
 
       console.log(`Roblox API - Response status: ${response.status}`);
