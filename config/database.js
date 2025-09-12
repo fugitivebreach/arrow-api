@@ -6,23 +6,29 @@ let client = null;
 const connectDB = async () => {
   try {
     if (!process.env.MONGODB_URI) {
-      throw new Error('MONGODB_URI environment variable is not set');
+      console.warn('MONGODB_URI environment variable is not set - running without database');
+      return;
     }
 
-    client = new MongoClient(process.env.MONGODB_URI);
+    console.log('Attempting MongoDB connection...');
+    client = new MongoClient(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 10000,
+    });
+    
     await client.connect();
     db = client.db();
     
-    console.log(`MongoDB Connected: ${client.topology.s.options.hosts[0].host}`);
+    console.log('MongoDB Connected successfully');
     
     // Initialize default API keys if none exist
     await initializeApiKeys();
   } catch (error) {
-    console.error('Database connection error:', error);
-    // Don't exit process in production, let app continue without DB
-    if (process.env.NODE_ENV !== 'production') {
-      process.exit(1);
-    }
+    console.error('Database connection error:', error.message);
+    console.warn('Continuing without database connection...');
+    // Don't crash the app, just continue without DB
+    db = null;
+    client = null;
   }
 };
 
