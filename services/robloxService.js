@@ -78,10 +78,10 @@ class RobloxService {
       });
       
       if (error.response && error.response.status === 404) {
-        console.log(`Roblox API - User ${userId} not found (404 error)`);
+        console.log(`Roblox API - Groups endpoint returned 404 for user ${userId}`);
         return { 
-          membership: 'User not found',
-          error: `Roblox user ID ${userId} does not exist`
+          membership: 'Groups not visible',
+          error: `User ${userId} has privacy settings that prevent group visibility or groups endpoint is restricted`
         };
       }
       
