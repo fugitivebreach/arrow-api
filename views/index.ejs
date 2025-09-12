@@ -1,11 +1,51 @@
-<div class="container">
-    <div class="hero-section text-center">
-        <h1 class="hero-title">Arrow API</h1>
-        <p class="hero-subtitle">Powerful Roblox Group Membership API</p>
-        <p class="hero-description">
-            Check Roblox group membership with lightning-fast responses. 
-            Secure, reliable, and easy to integrate into your applications.
-        </p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-arrow-right"></i>
+                <span>Arrow API</span>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/docs" class="nav-link">Documentation</a>
+                <% if (typeof user !== 'undefined' && user) { %>
+                    <a href="/dashboard" class="nav-link">Dashboard</a>
+                    <div class="user-menu">
+                        <img src="https://cdn.discordapp.com/avatars/<%= user.discordId %>/<%= user.avatar %>.png" alt="Avatar" class="user-avatar">
+                        <span class="username"><%= user.username %></span>
+                        <a href="/auth/logout" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </a>
+                    </div>
+                <% } else { %>
+                    <a href="/login" class="login-btn">
+                        <i class="fab fa-discord"></i>
+                        Login with Discord
+                    </a>
+                <% } %>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="hero-section text-center">
+                <h1 class="hero-title">Arrow API</h1>
+                <p class="hero-subtitle">Powerful Roblox Group Membership API</p>
+                <p class="hero-description">
+                    Check Roblox group membership with lightning-fast responses. 
+                    Secure, reliable, and easy to integrate into your applications.
+                </p>
         <div class="hero-actions">
             <% if (typeof user !== 'undefined' && user) { %>
                 <a href="/dashboard" class="btn btn-primary">
@@ -89,9 +129,34 @@ response = requests.get(
 data = response.json()</code></pre>
                 </div>
             </div>
+            </div>
         </div>
-    </div>
-</div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>Arrow API</h4>
+                <p>Powerful Roblox group membership API</p>
+            </div>
+            <div class="footer-section">
+                <h4>Links</h4>
+                <a href="/docs">Documentation</a>
+                <a href="/docs/auth">Authentication</a>
+                <a href="https://github.com" target="_blank">GitHub</a>
+            </div>
+            <div class="footer-section">
+                <h4>Support</h4>
+                <a href="https://discord.gg" target="_blank">Discord Server</a>
+                <a href="mailto:support@arrowapi.com">Contact</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Arrow API. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
 
 <style>
 .hero-section {
@@ -186,3 +251,5 @@ data = response.json()</code></pre>
     }
 }
 </style>
+</body>
+</html>
