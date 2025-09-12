@@ -23,14 +23,11 @@ const connectDB = async () => {
       maxPoolSize: 10,
       minPoolSize: 5,
       maxIdleTimeMS: 30000,
-      bufferMaxEntries: 0,
-      useNewUrlParser: true,
-      useUnifiedTopology: true
+      authSource: 'admin'
     };
 
     // Only add auth options for remote connections
     if (!isLocalConnection) {
-      connectionOptions.authSource = 'admin';
       connectionOptions.retryWrites = true;
       connectionOptions.w = 'majority';
     }
