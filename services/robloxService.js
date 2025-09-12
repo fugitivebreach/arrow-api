@@ -41,45 +41,65 @@ class RobloxService {
         console.log(`Roblox API - v1 groups endpoint failed, trying alternative...`);
         console.log(`Roblox API - Trying group members endpoint: ${this.baseURL}/groups/${groupId}/users`);
         
-        // Try the groups API from the group side
+        // Try the groups API from the group side with pagination
         try {
-          const groupResponse = await axios.get(
-            `${this.baseURL}/groups/${groupId}/users`,
-            {
+          let allMembers = [];
+          let nextPageCursor = null;
+          let pageCount = 0;
+          const maxPages = 50; // Safety limit to prevent infinite loops
+          
+          console.log(`Roblox API - Fetching all group members with pagination...`);
+          
+          do {
+            const url = nextPageCursor 
+              ? `${this.baseURL}/groups/${groupId}/users?cursor=${nextPageCursor}`
+              : `${this.baseURL}/groups/${groupId}/users`;
+              
+            console.log(`Roblox API - Fetching page ${pageCount + 1}: ${url}`);
+            
+            const groupResponse = await axios.get(url, {
               headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
               },
               timeout: 10000
-            }
-          );
-          
-          console.log(`Roblox API - Group members endpoint success, checking ${groupResponse.data?.data?.length || 0} members`);
-          
-          // Log the actual member data structure for debugging
-          if (groupResponse.data && groupResponse.data.data && groupResponse.data.data.length > 0) {
-            console.log(`Roblox API - Sample member structure:`, JSON.stringify(groupResponse.data.data[0], null, 2));
-            console.log(`Roblox API - All member user IDs:`, groupResponse.data.data.map(member => {
-              // Handle different possible structures
-              const memberId = member.user?.userId || member.user?.id || member.userId || member.id;
-              return { id: memberId, username: member.user?.name || member.user?.username || member.name || member.username };
-            }));
-          }
-          
-          // Check if user is in the group members list
-          if (groupResponse.data && groupResponse.data.data) {
-            const targetUserId = parseInt(userId);
-            console.log(`Roblox API - Looking for user ID: ${targetUserId} (type: ${typeof targetUserId})`);
+            });
             
-            const userInGroup = groupResponse.data.data.find(member => {
-              // Try different possible user ID field locations
+            if (groupResponse.data && groupResponse.data.data) {
+              allMembers = allMembers.concat(groupResponse.data.data);
+              nextPageCursor = groupResponse.data.nextPageCursor;
+              pageCount++;
+              
+              console.log(`Roblox API - Page ${pageCount}: Found ${groupResponse.data.data.length} members, total so far: ${allMembers.length}`);
+              
+              if (pageCount === 1) {
+                // Log sample structure on first page
+                console.log(`Roblox API - Sample member structure:`, JSON.stringify(groupResponse.data.data[0], null, 2));
+              }
+            } else {
+              break;
+            }
+          } while (nextPageCursor && pageCount < maxPages);
+          
+          console.log(`Roblox API - Finished pagination: ${allMembers.length} total members across ${pageCount} pages`);
+          
+          // Check if user is in the complete members list
+          if (allMembers.length > 0) {
+            const targetUserId = parseInt(userId);
+            console.log(`Roblox API - Looking for user ID: ${targetUserId} in ${allMembers.length} total members`);
+            
+            const userInGroup = allMembers.find(member => {
               const memberId = member.user?.userId || member.user?.id || member.userId || member.id;
               const memberIdInt = parseInt(memberId);
-              console.log(`Roblox API - Comparing ${targetUserId} === ${memberIdInt} (${memberId})`);
               return memberIdInt === targetUserId;
             });
             
             if (userInGroup) {
               console.log(`Roblox API - Found user in group via group members endpoint`);
+              console.log(`Roblox API - User details:`, {
+                username: userInGroup.user?.username,
+                rank: userInGroup.role?.name,
+                rankId: userInGroup.role?.rank
+              });
               return {
                 membership: 'In group',
                 rankName: userInGroup.role?.name || 'Unknown',
@@ -88,7 +108,7 @@ class RobloxService {
                 groupID: parseInt(groupId)
               };
             } else {
-              console.log(`Roblox API - User ${userId} not found in group ${groupId} members list`);
+              console.log(`Roblox API - User ${userId} not found in ${allMembers.length} group members`);
               return { membership: 'Not in group' };
             }
           }
