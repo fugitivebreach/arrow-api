@@ -29,12 +29,31 @@ const validateApiKey = async (req, res, next) => {
       await validKey.recordUsage();
     } else {
       console.log('API Key validation - Checking user API keys');
-      // Check user's API keys
+      
+      // First, let's check if there are any users with API keys at all
+      const { getDB } = require('../config/database');
+      const db = getDB();
+      const usersWithKeys = await db.collection('users').find({ 'apiKeys.0': { $exists: true } }).toArray();
+      console.log('API Key validation - Users with API keys in database:', usersWithKeys.length);
+      
+      if (usersWithKeys.length > 0) {
+        console.log('API Key validation - Sample user API keys:', usersWithKeys[0].apiKeys.map(k => ({ key: k.key.substring(0, 8) + '...', isActive: k.isActive })));
+      }
+      
+      // Check user's API keys (try without isActive first)
       user = await User.findOne({
-        'apiKeys.key': apiKey,
-        'apiKeys.isActive': true
+        'apiKeys.key': apiKey
       });
-      console.log('API Key validation - User with API key found:', user ? `Yes (${user.username})` : 'No');
+      console.log('API Key validation - User with API key found (any active state):', user ? `Yes (${user.username})` : 'No');
+      
+      if (!user) {
+        // Try with isActive: true
+        user = await User.findOne({
+          'apiKeys.key': apiKey,
+          'apiKeys.isActive': true
+        });
+        console.log('API Key validation - User with API key found (isActive=true):', user ? `Yes (${user.username})` : 'No');
+      }
 
       if (!user) {
         console.log('API Key validation - No valid user found for API key');
@@ -44,10 +63,20 @@ const validateApiKey = async (req, res, next) => {
       }
 
       // Find the specific API key and record usage
-      const userApiKey = user.apiKeys.find(key => key.key === apiKey && key.isActive);
-      console.log('API Key validation - User API key found in array:', userApiKey ? 'Yes' : 'No');
-      if (!userApiKey) {
-        console.log('API Key validation - API key not found in user\'s active keys');
+      const userApiKey = user.apiKeys.find(key => key.key === apiKey);
+      console.log('API Key validation - User API key found in array (any state):', userApiKey ? 'Yes' : 'No');
+      
+      if (userApiKey) {
+        console.log('API Key validation - API key details:', { 
+          isActive: userApiKey.isActive, 
+          name: userApiKey.name,
+          usageCount: userApiKey.usageCount 
+        });
+      }
+      
+      // Check if key exists but isn't active
+      if (!userApiKey || (userApiKey.isActive === false)) {
+        console.log('API Key validation - API key not found or not active');
         return res.status(401).json({ 
           error: 'API Key is invalid or no longer exists' 
         });
