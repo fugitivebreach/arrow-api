@@ -22,7 +22,9 @@ const connectDB = async () => {
       socketTimeoutMS: 45000,
       maxPoolSize: 10,
       minPoolSize: 2,
-      maxIdleTimeMS: 30000
+      maxIdleTimeMS: 30000,
+      authMechanism: 'SCRAM-SHA-1',
+      authSource: 'admin'
     };
 
     // Only add auth options for remote connections
@@ -31,8 +33,18 @@ const connectDB = async () => {
       connectionOptions.w = 'majority';
     }
 
-    // Create client with URI that includes proper encoding
-    const mongoUri = process.env.MONGODB_URI;
+    // Properly encode the MongoDB URI to handle special characters
+    let mongoUri = process.env.MONGODB_URI;
+    
+    // Extract credentials and re-encode them
+    const uriMatch = mongoUri.match(/mongodb\+srv:\/\/([^:]+):([^@]+)@(.+)/);
+    if (uriMatch) {
+      const [, username, password, rest] = uriMatch;
+      const encodedUsername = encodeURIComponent(username);
+      const encodedPassword = encodeURIComponent(password);
+      mongoUri = `mongodb+srv://${encodedUsername}:${encodedPassword}@${rest}`;
+    }
+    
     client = new MongoClient(mongoUri, connectionOptions);
     
     await client.connect();
