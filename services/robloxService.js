@@ -9,6 +9,20 @@ class RobloxService {
   async getGroupMembership(userId, groupId) {
     try {
       console.log(`Roblox API - Checking membership for user ${userId} in group ${groupId}`);
+      console.log(`Roblox API - Full URL: ${this.usersURL}/users/${userId}/groups/roles`);
+      
+      // First, let's try to get basic user info to verify the user exists
+      try {
+        const userCheck = await axios.get(`${this.usersURL}/users/${userId}`, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          },
+          timeout: 10000
+        });
+        console.log(`Roblox API - User exists:`, userCheck.data);
+      } catch (userError) {
+        console.log(`Roblox API - User check failed:`, userError.response?.status, userError.response?.data);
+      }
       
       // Use public API to get user's groups
       const response = await axios.get(
