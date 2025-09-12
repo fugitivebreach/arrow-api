@@ -22,9 +22,7 @@ const connectDB = async () => {
       socketTimeoutMS: 45000,
       maxPoolSize: 10,
       minPoolSize: 2,
-      maxIdleTimeMS: 30000,
-      authMechanism: 'SCRAM-SHA-1',
-      authSource: 'admin'
+      maxIdleTimeMS: 30000
     };
 
     // Only add auth options for remote connections
