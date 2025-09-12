@@ -1,0 +1,125 @@
+<div class="container">
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <i class="fas fa-arrow-right login-icon"></i>
+                <h1>Welcome to Arrow API</h1>
+                <p>Sign in with Discord to access your dashboard and manage your API keys</p>
+            </div>
+            <div class="login-content">
+                <a href="/auth/discord" class="discord-login-btn">
+                    <i class="fab fa-discord"></i>
+                    <span>Continue with Discord</span>
+                </a>
+                <div class="login-features">
+                    <div class="feature-item">
+                        <i class="fas fa-key"></i>
+                        <span>Manage API Keys</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-cookie-bite"></i>
+                        <span>Cookie Management</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Usage Analytics</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 200px);
+    padding: 2rem;
+}
+
+.login-card {
+    background-color: #000000;
+    border: 1px solid #ffffff;
+    border-radius: 12px;
+    padding: 3rem;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+}
+
+.login-header {
+    margin-bottom: 2rem;
+}
+
+.login-icon {
+    font-size: 3rem;
+    color: #ffffff;
+    margin-bottom: 1rem;
+}
+
+.login-header h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.login-header p {
+    color: #cccccc;
+    font-size: 0.9rem;
+}
+
+.discord-login-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background-color: #5865f2;
+    color: #ffffff;
+    text-decoration: none;
+    border: 1px solid #ffffff;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin-bottom: 2rem;
+}
+
+.discord-login-btn:hover {
+    background-color: #4752c4;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(88, 101, 242, 0.3);
+}
+
+.login-features {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid #ffffff;
+    border-radius: 6px;
+    color: #cccccc;
+    font-size: 0.9rem;
+}
+
+.feature-item i {
+    color: #ffffff;
+    width: 20px;
+    text-align: center;
+}
+
+@media (max-width: 480px) {
+    .login-card {
+        padding: 2rem 1.5rem;
+        margin: 1rem;
+    }
+}
+</style>

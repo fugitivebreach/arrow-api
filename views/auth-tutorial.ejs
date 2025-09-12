@@ -1,0 +1,689 @@
+<div class="docs-container">
+    <div class="docs-sidebar">
+        <nav class="docs-nav">
+            <ul>
+                <li>
+                    <a href="#getting-api-key">Getting Your API Key</a>
+                    <ul>
+                        <li><a href="#create-account">Create Account</a></li>
+                        <li><a href="#generate-key">Generate API Key</a></li>
+                        <li><a href="#manage-keys">Manage Keys</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#using-api-key">Using Your API Key</a>
+                    <ul>
+                        <li><a href="#header-format">Header Format</a></li>
+                        <li><a href="#security-tips">Security Tips</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#code-examples">Code Examples</a>
+                    <ul>
+                        <li><a href="#curl-auth">cURL</a></li>
+                        <li><a href="#python-auth">Python</a></li>
+                        <li><a href="#javascript-auth">JavaScript</a></li>
+                        <li><a href="#nodejs-auth">Node.js</a></li>
+                        <li><a href="#go-auth">Go</a></li>
+                        <li><a href="#ruby-auth">Ruby</a></li>
+                        <li><a href="#rust-auth">Rust</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#troubleshooting">Troubleshooting</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="docs-content">
+        <h1>Authentication Tutorial</h1>
+        <p>Learn how to create and use API keys with the Arrow API. This step-by-step guide will help you get started quickly.</p>
+
+        <section id="getting-api-key">
+            <h2>Getting Your API Key</h2>
+
+            <h3 id="create-account">Step 1: Create Your Account</h3>
+            <p>To use the Arrow API, you need to create an account using Discord authentication.</p>
+            
+            <div class="tutorial-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h4>Visit the Login Page</h4>
+                    <p>Go to <a href="/login" class="btn">Login Page</a> and click "Continue with Discord"</p>
+                </div>
+            </div>
+
+            <div class="tutorial-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h4>Authorize with Discord</h4>
+                    <p>You'll be redirected to Discord to authorize the application. Click "Authorize" to continue.</p>
+                </div>
+            </div>
+
+            <div class="tutorial-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h4>Access Your Dashboard</h4>
+                    <p>After authorization, you'll be redirected to your dashboard where you can manage API keys.</p>
+                </div>
+            </div>
+
+            <h3 id="generate-key">Step 2: Generate Your First API Key</h3>
+            
+            <div class="tutorial-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h4>Navigate to API Keys</h4>
+                    <p>In your dashboard, click on the "API Keys" tab in the sidebar.</p>
+                </div>
+            </div>
+
+            <div class="tutorial-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h4>Create New Key</h4>
+                    <p>Enter a descriptive name for your API key (e.g., "Production App", "Development") and click "Generate New API Key".</p>
+                </div>
+            </div>
+
+            <div class="tutorial-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h4>Copy Your Key</h4>
+                    <p>Your new API key will be displayed. Click the copy button to copy it to your clipboard.</p>
+                    <div class="alert alert-warning">
+                        <strong>Important:</strong> Store your API key securely. You won't be able to see the full key again after leaving this page.
+                    </div>
+                </div>
+            </div>
+
+            <h3 id="manage-keys">Step 3: Managing Your API Keys</h3>
+            <p>You can create multiple API keys for different applications or environments. Each key tracks usage independently.</p>
+            
+            <ul>
+                <li><strong>View Usage:</strong> See how many requests each key has made</li>
+                <li><strong>Delete Keys:</strong> Remove keys you no longer need</li>
+                <li><strong>Monitor Activity:</strong> Check when keys were last used</li>
+            </ul>
+        </section>
+
+        <section id="using-api-key">
+            <h2>Using Your API Key</h2>
+
+            <h3 id="header-format">Header Format</h3>
+            <p>Include your API key in the <code>api-key</code> header with every request:</p>
+            
+            <div class="code-block">
+                <pre><code>api-key: your-actual-api-key-here</code></pre>
+            </div>
+
+            <h3 id="security-tips">Security Best Practices</h3>
+            <div class="security-tips">
+                <div class="tip-card">
+                    <i class="fas fa-shield-alt"></i>
+                    <h4>Keep Keys Secret</h4>
+                    <p>Never expose API keys in client-side code, public repositories, or logs.</p>
+                </div>
+                <div class="tip-card">
+                    <i class="fas fa-key"></i>
+                    <h4>Use Environment Variables</h4>
+                    <p>Store API keys in environment variables or secure configuration files.</p>
+                </div>
+                <div class="tip-card">
+                    <i class="fas fa-sync-alt"></i>
+                    <h4>Rotate Keys Regularly</h4>
+                    <p>Generate new keys periodically and delete old ones for better security.</p>
+                </div>
+                <div class="tip-card">
+                    <i class="fas fa-users"></i>
+                    <h4>Separate Keys by Environment</h4>
+                    <p>Use different API keys for development, staging, and production.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="code-examples">
+            <h2>Authentication Code Examples</h2>
+            <p>Here are examples of how to properly authenticate with the Arrow API in different programming languages:</p>
+
+            <h3 id="curl-auth">cURL</h3>
+            <div class="code-block">
+                <pre><code># Basic request with API key
+curl -X GET "https://your-api.railway.app/123456789/987654321" \
+  -H "api-key: your-api-key-here"
+
+# Store API key in variable for reuse
+API_KEY="your-api-key-here"
+curl -X GET "https://your-api.railway.app/123456789/987654321" \
+  -H "api-key: $API_KEY"</code></pre>
+            </div>
+
+            <h3 id="python-auth">Python</h3>
+            <div class="code-block">
+                <pre><code>import os
+import requests
+
+# Store API key in environment variable
+API_KEY = os.getenv('ARROW_API_KEY')
+
+def make_authenticated_request(user_id, group_id):
+    url = f"https://your-api.railway.app/{user_id}/{group_id}"
+    headers = {
+        "api-key": API_KEY
+    }
+    
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  # Raises an HTTPError for bad responses
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Request failed: {e}")
+        return None
+
+# Usage
+result = make_authenticated_request(123456789, 987654321)
+if result:
+    print(f"Membership: {result['membership']}")
+
+# Alternative: Using a session for multiple requests
+session = requests.Session()
+session.headers.update({"api-key": API_KEY})
+
+response = session.get("https://your-api.railway.app/123456789/987654321")
+data = response.json()</code></pre>
+            </div>
+
+            <h3 id="javascript-auth">JavaScript (Browser)</h3>
+            <div class="code-block">
+                <pre><code>// Store API key securely (never in client-side code for production)
+// This example is for demonstration only
+const API_KEY = 'your-api-key-here';
+
+class ArrowAPIClient {
+    constructor(apiKey) {
+        this.apiKey = apiKey;
+        this.baseURL = 'https://your-api.railway.app';
+    }
+    
+    async checkMembership(userId, groupId) {
+        try {
+            const response = await fetch(`${this.baseURL}/${userId}/${groupId}`, {
+                method: 'GET',
+                headers: {
+                    'api-key': this.apiKey,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            return await response.json();
+        } catch (error) {
+            console.error('API request failed:', error);
+            throw error;
+        }
+    }
+}
+
+// Usage
+const client = new ArrowAPIClient(API_KEY);
+client.checkMembership(123456789, 987654321)
+    .then(data => {
+        console.log(`Membership: ${data.membership}`);
+        if (data.membership === 'In group') {
+            console.log(`Rank: ${data.rankName}`);
+        }
+    })
+    .catch(error => {
+        console.error('Failed to check membership:', error);
+    });</code></pre>
+            </div>
+
+            <h3 id="nodejs-auth">Node.js</h3>
+            <div class="code-block">
+                <pre><code>const https = require('https');
+require('dotenv').config();
+
+const API_KEY = process.env.ARROW_API_KEY;
+
+class ArrowAPIClient {
+    constructor(apiKey) {
+        this.apiKey = apiKey;
+        this.hostname = 'your-api.railway.app';
+    }
+    
+    checkMembership(userId, groupId) {
+        return new Promise((resolve, reject) => {
+            const options = {
+                hostname: this.hostname,
+                path: `/${userId}/${groupId}`,
+                method: 'GET',
+                headers: {
+                    'api-key': this.apiKey,
+                    'Content-Type': 'application/json'
+                }
+            };
+            
+            const req = https.request(options, (res) => {
+                let data = '';
+                
+                res.on('data', (chunk) => {
+                    data += chunk;
+                });
+                
+                res.on('end', () => {
+                    try {
+                        const result = JSON.parse(data);
+                        if (res.statusCode === 200) {
+                            resolve(result);
+                        } else {
+                            reject(new Error(result.error || 'Request failed'));
+                        }
+                    } catch (error) {
+                        reject(new Error('Invalid JSON response'));
+                    }
+                });
+            });
+            
+            req.on('error', (error) => {
+                reject(error);
+            });
+            
+            req.end();
+        });
+    }
+}
+
+// Usage
+const client = new ArrowAPIClient(API_KEY);
+client.checkMembership(123456789, 987654321)
+    .then(data => {
+        console.log(`Membership: ${data.membership}`);
+    })
+    .catch(error => {
+        console.error('Request failed:', error.message);
+    });</code></pre>
+            </div>
+
+            <h3 id="go-auth">Go</h3>
+            <div class="code-block">
+                <pre><code>package main
+
+import (
+    "encoding/json"
+    "fmt"
+    "io"
+    "net/http"
+    "os"
+    "time"
+)
+
+type ArrowAPIClient struct {
+    APIKey  string
+    BaseURL string
+    Client  *http.Client
+}
+
+type MembershipResponse struct {
+    ApiKey     string `json:"apiKey"`
+    Membership string `json:"membership"`
+    RankName   string `json:"rankName,omitempty"`
+    RankID     int    `json:"rankID,omitempty"`
+    GroupName  string `json:"groupName,omitempty"`
+    GroupID    int    `json:"groupID,omitempty"`
+}
+
+func NewArrowAPIClient(apiKey string) *ArrowAPIClient {
+    return &ArrowAPIClient{
+        APIKey:  apiKey,
+        BaseURL: "https://your-api.railway.app",
+        Client: &http.Client{
+            Timeout: 30 * time.Second,
+        },
+    }
+}
+
+func (c *ArrowAPIClient) CheckMembership(userID, groupID int) (*MembershipResponse, error) {
+    url := fmt.Sprintf("%s/%d/%d", c.BaseURL, userID, groupID)
+    
+    req, err := http.NewRequest("GET", url, nil)
+    if err != nil {
+        return nil, fmt.Errorf("failed to create request: %w", err)
+    }
+    
+    req.Header.Set("api-key", c.APIKey)
+    req.Header.Set("Content-Type", "application/json")
+    
+    resp, err := c.Client.Do(req)
+    if err != nil {
+        return nil, fmt.Errorf("request failed: %w", err)
+    }
+    defer resp.Body.Close()
+    
+    body, err := io.ReadAll(resp.Body)
+    if err != nil {
+        return nil, fmt.Errorf("failed to read response: %w", err)
+    }
+    
+    if resp.StatusCode != http.StatusOK {
+        return nil, fmt.Errorf("API returned status %d: %s", resp.StatusCode, string(body))
+    }
+    
+    var result MembershipResponse
+    if err := json.Unmarshal(body, &result); err != nil {
+        return nil, fmt.Errorf("failed to parse JSON: %w", err)
+    }
+    
+    return &result, nil
+}
+
+func main() {
+    apiKey := os.Getenv("ARROW_API_KEY")
+    if apiKey == "" {
+        fmt.Println("Please set ARROW_API_KEY environment variable")
+        return
+    }
+    
+    client := NewArrowAPIClient(apiKey)
+    
+    result, err := client.CheckMembership(123456789, 987654321)
+    if err != nil {
+        fmt.Printf("Error: %v\n", err)
+        return
+    }
+    
+    fmt.Printf("Membership: %s\n", result.Membership)
+    if result.Membership == "In group" {
+        fmt.Printf("Rank: %s (ID: %d)\n", result.RankName, result.RankID)
+        fmt.Printf("Group: %s\n", result.GroupName)
+    }
+}</code></pre>
+            </div>
+
+            <h3 id="ruby-auth">Ruby</h3>
+            <div class="code-block">
+                <pre><code>require 'net/http'
+require 'json'
+require 'uri'
+
+class ArrowAPIClient
+  def initialize(api_key)
+    @api_key = api_key
+    @base_url = 'https://your-api.railway.app'
+  end
+  
+  def check_membership(user_id, group_id)
+    uri = URI("#{@base_url}/#{user_id}/#{group_id}")
+    
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    http.read_timeout = 30
+    
+    request = Net::HTTP::Get.new(uri)
+    request['api-key'] = @api_key
+    request['Content-Type'] = 'application/json'
+    
+    response = http.request(request)
+    
+    case response.code
+    when '200'
+      JSON.parse(response.body)
+    else
+      error_data = JSON.parse(response.body) rescue {}
+      raise "API Error (#{response.code}): #{error_data['error'] || 'Unknown error'}"
+    end
+  rescue JSON::ParserError
+    raise "Invalid JSON response from API"
+  rescue => e
+    raise "Request failed: #{e.message}"
+  end
+end
+
+# Usage
+api_key = ENV['ARROW_API_KEY']
+raise 'Please set ARROW_API_KEY environment variable' unless api_key
+
+client = ArrowAPIClient.new(api_key)
+
+begin
+  result = client.check_membership(123456789, 987654321)
+  puts "Membership: #{result['membership']}"
+  
+  if result['membership'] == 'In group'
+    puts "Rank: #{result['rankName']} (ID: #{result['rankID']})"
+    puts "Group: #{result['groupName']}"
+  end
+rescue => e
+  puts "Error: #{e.message}"
+end</code></pre>
+            </div>
+
+            <h3 id="rust-auth">Rust</h3>
+            <div class="code-block">
+                <pre><code>use reqwest;
+use serde::{Deserialize, Serialize};
+use std::env;
+use std::time::Duration;
+
+#[derive(Deserialize, Debug)]
+struct MembershipResponse {
+    #[serde(rename = "apiKey")]
+    api_key: String,
+    membership: String,
+    #[serde(rename = "rankName")]
+    rank_name: Option<String>,
+    #[serde(rename = "rankID")]
+    rank_id: Option<i32>,
+    #[serde(rename = "groupName")]
+    group_name: Option<String>,
+    #[serde(rename = "groupID")]
+    group_id: Option<i32>,
+}
+
+#[derive(Deserialize, Debug)]
+struct ErrorResponse {
+    error: String,
+}
+
+struct ArrowAPIClient {
+    api_key: String,
+    base_url: String,
+    client: reqwest::Client,
+}
+
+impl ArrowAPIClient {
+    fn new(api_key: String) -> Self {
+        let client = reqwest::Client::builder()
+            .timeout(Duration::from_secs(30))
+            .build()
+            .expect("Failed to create HTTP client");
+            
+        Self {
+            api_key,
+            base_url: "https://your-api.railway.app".to_string(),
+            client,
+        }
+    }
+    
+    async fn check_membership(&self, user_id: u64, group_id: u64) -> Result<MembershipResponse, Box<dyn std::error::Error>> {
+        let url = format!("{}/{}/{}", self.base_url, user_id, group_id);
+        
+        let response = self.client
+            .get(&url)
+            .header("api-key", &self.api_key)
+            .header("Content-Type", "application/json")
+            .send()
+            .await?;
+        
+        if response.status().is_success() {
+            let data: MembershipResponse = response.json().await?;
+            Ok(data)
+        } else {
+            let error_data: ErrorResponse = response.json().await
+                .unwrap_or_else(|_| ErrorResponse { error: "Unknown error".to_string() });
+            Err(format!("API Error: {}", error_data.error).into())
+        }
+    }
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let api_key = env::var("ARROW_API_KEY")
+        .expect("Please set ARROW_API_KEY environment variable");
+    
+    let client = ArrowAPIClient::new(api_key);
+    
+    match client.check_membership(123456789, 987654321).await {
+        Ok(data) => {
+            println!("Membership: {}", data.membership);
+            
+            if data.membership == "In group" {
+                if let (Some(rank_name), Some(rank_id), Some(group_name)) = 
+                    (data.rank_name, data.rank_id, data.group_name) {
+                    println!("Rank: {} (ID: {})", rank_name, rank_id);
+                    println!("Group: {}", group_name);
+                }
+            }
+        }
+        Err(e) => {
+            eprintln!("Error: {}", e);
+        }
+    }
+    
+    Ok(())
+}</code></pre>
+            </div>
+        </section>
+
+        <section id="troubleshooting">
+            <h2>Troubleshooting</h2>
+
+            <div class="troubleshoot-item">
+                <h3>"API Key is invalid or no longer exists"</h3>
+                <ul>
+                    <li>Verify you're using the correct API key</li>
+                    <li>Check that the key hasn't been deleted from your dashboard</li>
+                    <li>Ensure there are no extra spaces or characters in the key</li>
+                    <li>Make sure you're using the header name <code>api-key</code> (not <code>API-Key</code> or <code>Authorization</code>)</li>
+                </ul>
+            </div>
+
+            <div class="troubleshoot-item">
+                <h3>Request Timeout</h3>
+                <ul>
+                    <li>Check your internet connection</li>
+                    <li>Verify the API endpoint URL is correct</li>
+                    <li>Try increasing the timeout in your HTTP client</li>
+                    <li>Check if there are any network firewalls blocking the request</li>
+                </ul>
+            </div>
+
+            <div class="troubleshoot-item">
+                <h3>"Invalid parameters" Error</h3>
+                <ul>
+                    <li>Ensure both user ID and group ID are valid numbers</li>
+                    <li>Check that you're not passing strings or other data types</li>
+                    <li>Verify the Roblox user ID and group ID exist</li>
+                </ul>
+            </div>
+
+            <div class="troubleshoot-item">
+                <h3>Still Having Issues?</h3>
+                <p>If you're still experiencing problems:</p>
+                <ul>
+                    <li>Check the <a href="/docs">main documentation</a> for additional details</li>
+                    <li>Verify your account status in the <a href="/dashboard">dashboard</a></li>
+                    <li>Contact support through our Discord server</li>
+                </ul>
+            </div>
+        </section>
+    </div>
+</div>
+
+<style>
+.tutorial-step {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border: 1px solid #ffffff;
+    border-radius: 8px;
+}
+
+.step-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: #ffffff;
+    color: #000000;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.step-content {
+    flex: 1;
+}
+
+.step-content h4 {
+    margin-bottom: 0.5rem;
+    color: #ffffff;
+}
+
+.security-tips {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.tip-card {
+    padding: 1.5rem;
+    border: 1px solid #ffffff;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.tip-card i {
+    font-size: 2rem;
+    color: #ffffff;
+    margin-bottom: 1rem;
+}
+
+.tip-card h4 {
+    margin-bottom: 0.5rem;
+}
+
+.tip-card p {
+    color: #cccccc;
+    font-size: 0.9rem;
+}
+
+.troubleshoot-item {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border: 1px solid #ffffff;
+    border-radius: 8px;
+}
+
+.troubleshoot-item h3 {
+    color: #ffffff;
+    margin-bottom: 1rem;
+}
+
+.troubleshoot-item ul {
+    margin-left: 1.5rem;
+}
+
+.troubleshoot-item li {
+    margin-bottom: 0.5rem;
+    color: #cccccc;
+}
+</style>

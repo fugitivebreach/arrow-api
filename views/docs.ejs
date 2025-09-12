@@ -1,0 +1,549 @@
+<div class="docs-container">
+    <div class="docs-sidebar">
+        <nav class="docs-nav">
+            <ul>
+                <li>
+                    <a href="#getting-started">Getting Started</a>
+                    <ul>
+                        <li><a href="#overview">Overview</a></li>
+                        <li><a href="#authentication">Authentication</a></li>
+                        <li><a href="#base-url">Base URL</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#endpoints">API Endpoints</a>
+                    <ul>
+                        <li><a href="#group-membership">Group Membership</a></li>
+                        <li><a href="#health-check">Health Check</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#code-examples">Code Examples</a>
+                    <ul>
+                        <li><a href="#curl-examples">cURL</a></li>
+                        <li><a href="#python-examples">Python</a></li>
+                        <li><a href="#javascript-examples">JavaScript</a></li>
+                        <li><a href="#nodejs-examples">Node.js</a></li>
+                        <li><a href="#go-examples">Go</a></li>
+                        <li><a href="#ruby-examples">Ruby</a></li>
+                        <li><a href="#rust-examples">Rust</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#response-format">Response Format</a>
+                    <ul>
+                        <li><a href="#success-responses">Success Responses</a></li>
+                        <li><a href="#error-responses">Error Responses</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#rate-limits">Rate Limits</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="docs-content">
+        <h1>Arrow API Documentation</h1>
+        <p>Welcome to the Arrow API documentation. This API allows you to check Roblox group membership with fast, reliable responses.</p>
+
+        <div class="alert alert-info">
+            <strong>Quick Start:</strong> Need help with authentication? Check out our <a href="/docs/auth">Authentication Tutorial</a> for step-by-step instructions.
+        </div>
+
+        <section id="getting-started">
+            <h2>Getting Started</h2>
+            
+            <h3 id="overview">Overview</h3>
+            <p>The Arrow API is a RESTful API that provides information about Roblox group membership. It's designed to be simple, fast, and reliable for developers who need to integrate Roblox group data into their applications.</p>
+
+            <h3 id="authentication">Authentication</h3>
+            <p>All API requests require authentication using an API key. Include your API key in the request headers:</p>
+            
+            <div class="alert alert-warning">
+                <strong>Security Notice:</strong> Keep your API keys secure and never expose them in client-side code.
+            </div>
+
+            <div class="code-block">
+                <pre><code>api-key: your-api-key-here</code></pre>
+            </div>
+
+            <p><a href="/docs/auth" class="btn">📚 Authentication Tutorial</a></p>
+
+            <h3 id="base-url">Base URL</h3>
+            <div class="code-block">
+                <pre><code>https://your-api.railway.app</code></pre>
+            </div>
+        </section>
+
+        <section id="endpoints">
+            <h2>API Endpoints</h2>
+
+            <h3 id="group-membership">Group Membership Check</h3>
+            <p>Check if a Roblox user is a member of a specific group and get their rank information.</p>
+
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-url">/{robloxuserid}/{groupid}</span>
+                </div>
+                
+                <h4>URL Parameters</h4>
+                <table class="params-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>robloxuserid</code></td>
+                            <td>integer</td>
+                            <td>The Roblox user ID to check</td>
+                        </tr>
+                        <tr>
+                            <td><code>groupid</code></td>
+                            <td>integer</td>
+                            <td>The Roblox group ID to check membership in</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4>Required Headers</h4>
+                <table class="params-table">
+                    <thead>
+                        <tr>
+                            <th>Header</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>api-key</code></td>
+                            <td>Your Arrow API key</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="language-tabs">
+                    <button class="tab-button active" onclick="showLanguageTab('membership', 'curl')">cURL</button>
+                    <button class="tab-button" onclick="showLanguageTab('membership', 'python')">Python</button>
+                    <button class="tab-button" onclick="showLanguageTab('membership', 'javascript')">JavaScript</button>
+                    <button class="tab-button" onclick="showLanguageTab('membership', 'nodejs')">Node.js</button>
+                    <button class="tab-button" onclick="showLanguageTab('membership', 'go')">Go</button>
+                    <button class="tab-button" onclick="showLanguageTab('membership', 'ruby')">Ruby</button>
+                    <button class="tab-button" onclick="showLanguageTab('membership', 'rust')">Rust</button>
+                </div>
+
+                <div id="membership-curl" class="tab-content active">
+                    <div class="code-block">
+                        <pre><code>curl -X GET "https://your-api.railway.app/123456789/987654321" \
+  -H "api-key: your-api-key-here"</code></pre>
+                    </div>
+                </div>
+
+                <div id="membership-python" class="tab-content">
+                    <div class="code-block">
+                        <pre><code>import requests
+
+url = "https://your-api.railway.app/123456789/987654321"
+headers = {
+    "api-key": "your-api-key-here"
+}
+
+response = requests.get(url, headers=headers)
+data = response.json()
+
+if response.status_code == 200:
+    print(f"Membership: {data['membership']}")
+    if data['membership'] == 'In group':
+        print(f"Rank: {data['rankName']} (ID: {data['rankID']})")
+        print(f"Group: {data['groupName']}")
+else:
+    print(f"Error: {data.get('error', 'Unknown error')}")</code></pre>
+                    </div>
+                </div>
+
+                <div id="membership-javascript" class="tab-content">
+                    <div class="code-block">
+                        <pre><code>const checkMembership = async (userId, groupId, apiKey) => {
+  try {
+    const response = await fetch(`https://your-api.railway.app/${userId}/${groupId}`, {
+      headers: {
+        'api-key': apiKey
+      }
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok) {
+      console.log(`Membership: ${data.membership}`);
+      if (data.membership === 'In group') {
+        console.log(`Rank: ${data.rankName} (ID: ${data.rankID})`);
+        console.log(`Group: ${data.groupName}`);
+      }
+    } else {
+      console.error(`Error: ${data.error}`);
+    }
+  } catch (error) {
+    console.error('Request failed:', error);
+  }
+};
+
+checkMembership(123456789, 987654321, 'your-api-key-here');</code></pre>
+                    </div>
+                </div>
+
+                <div id="membership-nodejs" class="tab-content">
+                    <div class="code-block">
+                        <pre><code>const https = require('https');
+
+const checkMembership = (userId, groupId, apiKey) => {
+  const options = {
+    hostname: 'your-api.railway.app',
+    path: `/${userId}/${groupId}`,
+    method: 'GET',
+    headers: {
+      'api-key': apiKey
+    }
+  };
+
+  const req = https.request(options, (res) => {
+    let data = '';
+    
+    res.on('data', (chunk) => {
+      data += chunk;
+    });
+    
+    res.on('end', () => {
+      const result = JSON.parse(data);
+      console.log(`Membership: ${result.membership}`);
+      
+      if (result.membership === 'In group') {
+        console.log(`Rank: ${result.rankName} (ID: ${result.rankID})`);
+        console.log(`Group: ${result.groupName}`);
+      }
+    });
+  });
+
+  req.on('error', (error) => {
+    console.error('Request failed:', error);
+  });
+
+  req.end();
+};
+
+checkMembership(123456789, 987654321, 'your-api-key-here');</code></pre>
+                    </div>
+                </div>
+
+                <div id="membership-go" class="tab-content">
+                    <div class="code-block">
+                        <pre><code>package main
+
+import (
+    "encoding/json"
+    "fmt"
+    "io"
+    "net/http"
+)
+
+type MembershipResponse struct {
+    ApiKey     string `json:"apiKey"`
+    Membership string `json:"membership"`
+    RankName   string `json:"rankName,omitempty"`
+    RankID     int    `json:"rankID,omitempty"`
+    GroupName  string `json:"groupName,omitempty"`
+    GroupID    int    `json:"groupID,omitempty"`
+}
+
+func checkMembership(userID, groupID int, apiKey string) {
+    url := fmt.Sprintf("https://your-api.railway.app/%d/%d", userID, groupID)
+    
+    req, err := http.NewRequest("GET", url, nil)
+    if err != nil {
+        fmt.Printf("Error creating request: %v\n", err)
+        return
+    }
+    
+    req.Header.Set("api-key", apiKey)
+    
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    if err != nil {
+        fmt.Printf("Error making request: %v\n", err)
+        return
+    }
+    defer resp.Body.Close()
+    
+    body, err := io.ReadAll(resp.Body)
+    if err != nil {
+        fmt.Printf("Error reading response: %v\n", err)
+        return
+    }
+    
+    var result MembershipResponse
+    if err := json.Unmarshal(body, &result); err != nil {
+        fmt.Printf("Error parsing JSON: %v\n", err)
+        return
+    }
+    
+    fmt.Printf("Membership: %s\n", result.Membership)
+    if result.Membership == "In group" {
+        fmt.Printf("Rank: %s (ID: %d)\n", result.RankName, result.RankID)
+        fmt.Printf("Group: %s\n", result.GroupName)
+    }
+}
+
+func main() {
+    checkMembership(123456789, 987654321, "your-api-key-here")
+}</code></pre>
+                    </div>
+                </div>
+
+                <div id="membership-ruby" class="tab-content">
+                    <div class="code-block">
+                        <pre><code>require 'net/http'
+require 'json'
+require 'uri'
+
+def check_membership(user_id, group_id, api_key)
+  uri = URI("https://your-api.railway.app/#{user_id}/#{group_id}")
+  
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = true
+  
+  request = Net::HTTP::Get.new(uri)
+  request['api-key'] = api_key
+  
+  response = http.request(request)
+  data = JSON.parse(response.body)
+  
+  if response.code == '200'
+    puts "Membership: #{data['membership']}"
+    
+    if data['membership'] == 'In group'
+      puts "Rank: #{data['rankName']} (ID: #{data['rankID']})"
+      puts "Group: #{data['groupName']}"
+    end
+  else
+    puts "Error: #{data['error']}"
+  end
+rescue => e
+  puts "Request failed: #{e.message}"
+end
+
+check_membership(123456789, 987654321, 'your-api-key-here')</code></pre>
+                    </div>
+                </div>
+
+                <div id="membership-rust" class="tab-content">
+                    <div class="code-block">
+                        <pre><code>use reqwest;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+
+#[derive(Deserialize, Debug)]
+struct MembershipResponse {
+    #[serde(rename = "apiKey")]
+    api_key: String,
+    membership: String,
+    #[serde(rename = "rankName")]
+    rank_name: Option<String>,
+    #[serde(rename = "rankID")]
+    rank_id: Option<i32>,
+    #[serde(rename = "groupName")]
+    group_name: Option<String>,
+    #[serde(rename = "groupID")]
+    group_id: Option<i32>,
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let user_id = 123456789;
+    let group_id = 987654321;
+    let api_key = "your-api-key-here";
+    
+    let url = format!("https://your-api.railway.app/{}/{}", user_id, group_id);
+    
+    let client = reqwest::Client::new();
+    let response = client
+        .get(&url)
+        .header("api-key", api_key)
+        .send()
+        .await?;
+    
+    if response.status().is_success() {
+        let data: MembershipResponse = response.json().await?;
+        
+        println!("Membership: {}", data.membership);
+        
+        if data.membership == "In group" {
+            if let (Some(rank_name), Some(rank_id), Some(group_name)) = 
+                (data.rank_name, data.rank_id, data.group_name) {
+                println!("Rank: {} (ID: {})", rank_name, rank_id);
+                println!("Group: {}", group_name);
+            }
+        }
+    } else {
+        println!("Request failed with status: {}", response.status());
+    }
+    
+    Ok(())
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <h3 id="health-check">Health Check</h3>
+            <p>Check the API status and uptime.</p>
+
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-url">/health</span>
+                </div>
+                
+                <p>This endpoint doesn't require authentication and returns the current status of the API.</p>
+
+                <div class="code-block">
+                    <pre><code>curl -X GET "https://your-api.railway.app/health"</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <section id="response-format">
+            <h2>Response Format</h2>
+
+            <h3 id="success-responses">Success Responses</h3>
+            
+            <h4>User in Group</h4>
+            <div class="code-block">
+                <pre><code>{
+  "apiKey": "API Key is valid and exists",
+  "membership": "In group",
+  "rankName": "Member",
+  "rankID": 1,
+  "groupName": "Example Group",
+  "groupID": 987654321
+}</code></pre>
+            </div>
+
+            <h4>User Not in Group</h4>
+            <div class="code-block">
+                <pre><code>{
+  "apiKey": "API Key is valid and exists",
+  "membership": "Not in group"
+}</code></pre>
+            </div>
+
+            <h3 id="error-responses">Error Responses</h3>
+
+            <h4>Invalid API Key</h4>
+            <div class="code-block">
+                <pre><code>{
+  "error": "API Key is invalid or no longer exists"
+}</code></pre>
+            </div>
+
+            <h4>Invalid Parameters</h4>
+            <div class="code-block">
+                <pre><code>{
+  "error": "Invalid parameters: robloxuserid and groupid must be numbers"
+}</code></pre>
+            </div>
+        </section>
+
+        <section id="rate-limits">
+            <h2>Rate Limits</h2>
+            <p>The Arrow API implements reasonable rate limits to ensure fair usage and optimal performance for all users.</p>
+            
+            <div class="alert alert-info">
+                <strong>Rate Limit:</strong> Currently, there are no strict rate limits, but we monitor usage patterns and may implement limits if needed to maintain service quality.
+            </div>
+
+            <p>Best practices:</p>
+            <ul>
+                <li>Cache responses when possible to reduce API calls</li>
+                <li>Implement exponential backoff for retries</li>
+                <li>Don't make unnecessary duplicate requests</li>
+                <li>Contact support if you need higher rate limits for your application</li>
+            </ul>
+        </section>
+    </div>
+</div>
+
+<style>
+.endpoint-card {
+    border: 1px solid #ffffff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.endpoint-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #ffffff;
+}
+
+.method {
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.method.get {
+    background-color: #22c55e;
+    color: #000000;
+}
+
+.endpoint-url {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 1.1rem;
+    color: #ffffff;
+}
+
+.params-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+}
+
+.params-table th,
+.params-table td {
+    padding: 0.75rem;
+    border: 1px solid #ffffff;
+    text-align: left;
+}
+
+.params-table th {
+    background-color: rgba(255, 255, 255, 0.1);
+    font-weight: 600;
+}
+
+.params-table code {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.docs-content section {
+    margin-bottom: 3rem;
+}
+
+.docs-content h2 {
+    scroll-margin-top: 100px;
+}
+
+.docs-content h3 {
+    scroll-margin-top: 100px;
+}
+</style>

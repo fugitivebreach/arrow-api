@@ -1,0 +1,440 @@
+<div class="container">
+    <div class="dashboard-grid">
+        <div class="sidebar">
+            <div class="user-info">
+                <img src="https://cdn.discordapp.com/avatars/<%= user.discordId %>/<%= user.avatar %>.png" alt="Avatar" class="dashboard-avatar">
+                <h3><%= user.username %></h3>
+                <p class="user-tag">#<%= user.discriminator %></p>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="#overview" class="nav-tab active" data-tab="overview">
+                        <i class="fas fa-tachometer-alt"></i> Overview
+                    </a></li>
+                    <li><a href="#api-keys" class="nav-tab" data-tab="api-keys">
+                        <i class="fas fa-key"></i> API Keys
+                    </a></li>
+                    <li><a href="#cookies" class="nav-tab" data-tab="cookies">
+                        <i class="fas fa-cookie-bite"></i> Cookies
+                    </a></li>
+                    <li><a href="#usage" class="nav-tab" data-tab="usage">
+                        <i class="fas fa-chart-line"></i> Usage
+                    </a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <div class="dashboard-content">
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-panel active">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Welcome back, <%= user.username %>!</h2>
+                        <p class="card-subtitle">Manage your Arrow API account and settings</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-key"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3><%= user.apiKeys.length %></h3>
+                                <p>API Keys</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3><%= user.apiKeys.reduce((sum, key) => sum + key.usageCount, 0) %></h3>
+                                <p>Total Requests</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3><%= new Date(user.lastLogin).toLocaleDateString() %></h3>
+                                <p>Last Login</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Quick Actions</h3>
+                    </div>
+                    <div class="quick-actions">
+                        <button class="btn" onclick="switchTab('api-keys')">
+                            <i class="fas fa-plus"></i>
+                            Generate API Key
+                        </button>
+                        <button class="btn" onclick="switchTab('cookies')">
+                            <i class="fas fa-cookie-bite"></i>
+                            Update Cookie
+                        </button>
+                        <a href="/docs" class="btn">
+                            <i class="fas fa-book"></i>
+                            View Documentation
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Keys Tab -->
+            <div id="api-keys" class="tab-panel">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">API Key Management</h2>
+                        <p class="card-subtitle">Create and manage your API keys for accessing the Arrow API</p>
+                    </div>
+                    
+                    <div class="api-key-generator">
+                        <div class="form-group">
+                            <label class="form-label" for="keyName">API Key Name</label>
+                            <input type="text" id="keyName" class="form-input" placeholder="e.g., Production Key, Development Key">
+                        </div>
+                        <button class="btn btn-primary" onclick="generateApiKey()">
+                            <i class="fas fa-plus"></i>
+                            Generate New API Key
+                        </button>
+                    </div>
+
+                    <div class="api-keys-list">
+                        <% user.apiKeys.forEach((key, index) => { %>
+                        <div class="api-key-item" data-key-id="<%= key._id %>">
+                            <div class="api-key-info">
+                                <h4><%= key.name %></h4>
+                                <p class="api-key-value">
+                                    <span class="key-preview">••••••••••••••••<%= key.key.slice(-8) %></span>
+                                    <button class="btn-copy" onclick="copyApiKey('<%= key.key %>')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </p>
+                                <div class="key-stats">
+                                    <span>Created: <%= new Date(key.createdAt).toLocaleDateString() %></span>
+                                    <span>Usage: <%= key.usageCount %> requests</span>
+                                    <% if (key.lastUsed) { %>
+                                        <span>Last used: <%= new Date(key.lastUsed).toLocaleDateString() %></span>
+                                    <% } %>
+                                </div>
+                            </div>
+                            <div class="api-key-actions">
+                                <button class="btn btn-danger" onclick="deleteApiKey('<%= key._id %>')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <% }); %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cookies Tab -->
+            <div id="cookies" class="tab-panel">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Roblox Cookie Management</h2>
+                        <p class="card-subtitle">Update your Roblox authentication cookie (5 second cooldown)</p>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        Your Roblox cookie is used to authenticate API requests to Roblox services. Keep it secure and update it if needed.
+                    </div>
+
+                    <div class="cookie-status">
+                        <div class="status-item">
+                            <span class="status-label">Current Status:</span>
+                            <span class="status-value <%= user.robloxCookie.value ? 'status-active' : 'status-inactive' %>">
+                                <%= user.robloxCookie.value ? 'Active' : 'Not Set' %>
+                            </span>
+                        </div>
+                        <% if (user.robloxCookie.updatedAt) { %>
+                        <div class="status-item">
+                            <span class="status-label">Last Updated:</span>
+                            <span class="status-value"><%= new Date(user.robloxCookie.updatedAt).toLocaleString() %></span>
+                        </div>
+                        <% } %>
+                    </div>
+
+                    <div class="cookie-form">
+                        <div class="form-group">
+                            <label class="form-label" for="robloxCookie">Roblox Cookie (.ROBLOSECURITY)</label>
+                            <textarea id="robloxCookie" class="form-input" rows="3" placeholder="Paste your Roblox .ROBLOSECURITY cookie here"></textarea>
+                        </div>
+                        <button class="btn btn-primary" id="updateCookieBtn" onclick="updateCookie()">
+                            <i class="fas fa-save"></i>
+                            Update Cookie
+                        </button>
+                        <div id="cookieCooldown" class="cooldown-timer hidden">
+                            <i class="fas fa-clock"></i>
+                            <span id="cooldownText">Cooldown: 5s</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Usage Tab -->
+            <div id="usage" class="tab-panel">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Usage Statistics</h2>
+                        <p class="card-subtitle">Monitor your API usage and performance</p>
+                    </div>
+
+                    <div class="usage-overview">
+                        <div class="usage-stat">
+                            <h3>Total API Keys</h3>
+                            <p class="stat-number"><%= user.apiKeys.length %></p>
+                        </div>
+                        <div class="usage-stat">
+                            <h3>Total Requests</h3>
+                            <p class="stat-number"><%= user.apiKeys.reduce((sum, key) => sum + key.usageCount, 0) %></p>
+                        </div>
+                        <div class="usage-stat">
+                            <h3>Active Keys</h3>
+                            <p class="stat-number"><%= user.apiKeys.filter(key => key.isActive).length %></p>
+                        </div>
+                    </div>
+
+                    <div class="usage-details">
+                        <h3>API Key Usage Breakdown</h3>
+                        <% user.apiKeys.forEach(key => { %>
+                        <div class="usage-item">
+                            <div class="usage-info">
+                                <h4><%= key.name %></h4>
+                                <p>Requests: <%= key.usageCount %></p>
+                                <% if (key.lastUsed) { %>
+                                    <p>Last used: <%= new Date(key.lastUsed).toLocaleString() %></p>
+                                <% } else { %>
+                                    <p>Never used</p>
+                                <% } %>
+                            </div>
+                            <div class="usage-bar">
+                                <div class="usage-fill" data-width="<%= Math.min(100, (key.usageCount / Math.max(1, Math.max(...user.apiKeys.map(k => k.usageCount)))) * 100) %>"></div>
+                            </div>
+                        </div>
+                        <% }); %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.dashboard-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    margin-bottom: 1rem;
+}
+
+.user-info {
+    text-align: center;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #ffffff;
+    margin-bottom: 1.5rem;
+}
+
+.user-tag {
+    color: #cccccc;
+    font-size: 0.9rem;
+}
+
+.nav-tab {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tab-panel {
+    display: none;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    border: 1px solid #ffffff;
+    border-radius: 8px;
+}
+
+.stat-icon {
+    font-size: 2rem;
+    color: #ffffff;
+}
+
+.stat-info h3 {
+    font-size: 2rem;
+    margin-bottom: 0.25rem;
+}
+
+.stat-info p {
+    color: #cccccc;
+    font-size: 0.9rem;
+}
+
+.quick-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.api-key-generator {
+    padding: 1.5rem;
+    border: 1px solid #ffffff;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.api-key-value {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.9rem;
+    color: #cccccc;
+}
+
+.btn-copy {
+    background: none;
+    border: 1px solid #ffffff;
+    color: #ffffff;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-copy:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.key-stats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: #aaaaaa;
+    margin-top: 0.5rem;
+}
+
+.cookie-status {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid #ffffff;
+    border-radius: 6px;
+}
+
+.status-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.status-label {
+    font-size: 0.9rem;
+    color: #cccccc;
+}
+
+.status-value {
+    font-weight: 600;
+}
+
+.status-active {
+    color: #22c55e;
+}
+
+.status-inactive {
+    color: #ef4444;
+}
+
+.cooldown-timer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    color: #f59e0b;
+}
+
+.usage-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.usage-stat {
+    text-align: center;
+    padding: 1.5rem;
+    border: 1px solid #ffffff;
+    border-radius: 8px;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-top: 0.5rem;
+}
+
+.usage-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid #ffffff;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+}
+
+.usage-info {
+    flex: 1;
+}
+
+.usage-bar {
+    width: 200px;
+    height: 8px;
+    background-color: #333333;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.usage-fill {
+    height: 100%;
+    background-color: #ffffff;
+    transition: width 0.3s ease;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize usage bars on page load
+    const usageFills = document.querySelectorAll('.usage-fill');
+    usageFills.forEach(fill => {
+        const width = fill.getAttribute('data-width');
+        if (width) {
+            fill.style.width = width + '%';
+        }
+    });
+});
+</script>

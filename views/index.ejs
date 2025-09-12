@@ -1,0 +1,188 @@
+<div class="container">
+    <div class="hero-section text-center">
+        <h1 class="hero-title">Arrow API</h1>
+        <p class="hero-subtitle">Powerful Roblox Group Membership API</p>
+        <p class="hero-description">
+            Check Roblox group membership with lightning-fast responses. 
+            Secure, reliable, and easy to integrate into your applications.
+        </p>
+        <div class="hero-actions">
+            <% if (typeof user !== 'undefined' && user) { %>
+                <a href="/dashboard" class="btn btn-primary">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Go to Dashboard
+                </a>
+            <% } else { %>
+                <a href="/login" class="btn btn-primary">
+                    <i class="fab fa-discord"></i>
+                    Get Started
+                </a>
+            <% } %>
+            <a href="/docs" class="btn">
+                <i class="fas fa-book"></i>
+                Documentation
+            </a>
+        </div>
+    </div>
+
+    <div class="features-section">
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h3>Lightning Fast</h3>
+                <p>Get group membership data in milliseconds with our optimized API endpoints.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>Secure & Reliable</h3>
+                <p>API key authentication and MongoDB storage ensure your data is safe and accessible.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-code"></i>
+                </div>
+                <h3>Developer Friendly</h3>
+                <p>Simple REST API with comprehensive documentation and code examples in multiple languages.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="example-section">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Quick Example</h2>
+                <p class="card-subtitle">Check if a user is in a Roblox group</p>
+            </div>
+            <div class="language-tabs">
+                <button class="tab-button active" onclick="showTab('curl')">cURL</button>
+                <button class="tab-button" onclick="showTab('javascript')">JavaScript</button>
+                <button class="tab-button" onclick="showTab('python')">Python</button>
+            </div>
+            <div id="curl" class="tab-content active">
+                <div class="code-block">
+                    <pre><code>curl -X GET "https://your-api.railway.app/123456789/987654321" \
+  -H "api-key: your-api-key-here"</code></pre>
+                </div>
+            </div>
+            <div id="javascript" class="tab-content">
+                <div class="code-block">
+                    <pre><code>const response = await fetch('https://your-api.railway.app/123456789/987654321', {
+  headers: {
+    'api-key': 'your-api-key-here'
+  }
+});
+const data = await response.json();</code></pre>
+                </div>
+            </div>
+            <div id="python" class="tab-content">
+                <div class="code-block">
+                    <pre><code>import requests
+
+response = requests.get(
+    'https://your-api.railway.app/123456789/987654321',
+    headers={'api-key': 'your-api-key-here'}
+)
+data = response.json()</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hero-section {
+    padding: 4rem 0;
+    margin-bottom: 4rem;
+}
+
+.hero-title {
+    font-size: 4rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-subtitle {
+    font-size: 1.5rem;
+    color: #cccccc;
+    margin-bottom: 1rem;
+}
+
+.hero-description {
+    font-size: 1.1rem;
+    color: #aaaaaa;
+    max-width: 600px;
+    margin: 0 auto 2rem;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.features-section {
+    margin-bottom: 4rem;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.feature-card {
+    background-color: #000000;
+    border: 1px solid #ffffff;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    color: #ffffff;
+    margin-bottom: 1rem;
+}
+
+.feature-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.feature-card p {
+    color: #cccccc;
+}
+
+.example-section {
+    margin-bottom: 4rem;
+}
+
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .hero-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
