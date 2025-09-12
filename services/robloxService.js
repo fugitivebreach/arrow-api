@@ -63,7 +63,15 @@ class RobloxService {
         data: error.response?.data
       });
       
-      if (error.response && (error.response.status === 404 || error.response.status === 400)) {
+      if (error.response && error.response.status === 404) {
+        console.log(`Roblox API - User ${userId} not found (404 error)`);
+        return { 
+          membership: 'User not found',
+          error: `Roblox user ID ${userId} does not exist`
+        };
+      }
+      
+      if (error.response && error.response.status === 400) {
         return { membership: 'Not in group' };
       }
       

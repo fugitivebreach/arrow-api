@@ -74,12 +74,18 @@ const validateApiKey = async (req, res, next) => {
         });
       }
       
-      // Check if key exists but isn't active
+      // Check if key exists but isn't active (treat undefined as active for backward compatibility)
       if (!userApiKey || (userApiKey.isActive === false)) {
         console.log('API Key validation - API key not found or not active');
         return res.status(401).json({ 
           error: 'API Key is invalid or no longer exists' 
         });
+      }
+      
+      // Set isActive to true if undefined for backward compatibility
+      if (userApiKey.isActive === undefined) {
+        userApiKey.isActive = true;
+        console.log('API Key validation - Set isActive to true for backward compatibility');
       }
 
       // Update usage statistics
