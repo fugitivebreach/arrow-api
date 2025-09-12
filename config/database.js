@@ -18,6 +18,9 @@ const connectDB = async () => {
         client = new MongoClient(process.env.MONGODB_URI, {
           serverSelectionTimeoutMS: 3000,
           connectTimeoutMS: 5000,
+          authSource: 'admin',
+          retryWrites: true,
+          w: 'majority'
         });
         
         await client.connect();

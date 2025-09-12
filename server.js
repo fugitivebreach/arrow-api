@@ -48,6 +48,17 @@ if (process.env.MONGODB_URI) {
   console.warn('MONGODB_URI not set, skipping database connection');
 }
 
+// Disable authentication routes if no database connection
+app.use((req, res, next) => {
+  if (!process.env.MONGODB_URI && req.path.startsWith('/auth/')) {
+    return res.status(503).json({
+      error: 'Authentication unavailable',
+      message: 'Database connection required for authentication'
+    });
+  }
+  next();
+});
+
 // Add global error handlers to prevent crashes
 process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error.message);
