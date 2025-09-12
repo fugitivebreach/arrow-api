@@ -1,40 +1,80 @@
-<div class="docs-container">
-    <div class="docs-sidebar">
-        <nav class="docs-nav">
-            <ul>
-                <li>
-                    <a href="#getting-api-key">Getting Your API Key</a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-arrow-right"></i>
+                <span>Arrow API</span>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/docs" class="nav-link">Documentation</a>
+                <% if (typeof user !== 'undefined' && user) { %>
+                    <a href="/dashboard" class="nav-link">Dashboard</a>
+                    <div class="user-menu">
+                        <img src="https://cdn.discordapp.com/avatars/<%= user.discordId %>/<%= user.avatar %>.png" alt="Avatar" class="user-avatar">
+                        <span class="username"><%= user.username %></span>
+                        <a href="/auth/logout" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </a>
+                    </div>
+                <% } else { %>
+                    <a href="/login" class="login-btn">
+                        <i class="fab fa-discord"></i>
+                        Login with Discord
+                    </a>
+                <% } %>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="docs-container">
+            <div class="docs-sidebar">
+                <nav class="docs-nav">
                     <ul>
-                        <li><a href="#create-account">Create Account</a></li>
-                        <li><a href="#generate-key">Generate API Key</a></li>
-                        <li><a href="#manage-keys">Manage Keys</a></li>
+                        <li>
+                            <a href="#getting-api-key">Getting Your API Key</a>
+                            <ul>
+                                <li><a href="#create-account">Create Account</a></li>
+                                <li><a href="#generate-key">Generate API Key</a></li>
+                                <li><a href="#manage-keys">Manage Keys</a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#using-api-key">Using Your API Key</a>
+                            <ul>
+                                <li><a href="#header-format">Header Format</a></li>
+                                <li><a href="#security-tips">Security Tips</a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#code-examples">Code Examples</a>
+                            <ul>
+                                <li><a href="#curl-auth">cURL</a></li>
+                                <li><a href="#python-auth">Python</a></li>
+                                <li><a href="#javascript-auth">JavaScript</a></li>
+                                <li><a href="#nodejs-auth">Node.js</a></li>
+                                <li><a href="#go-auth">Go</a></li>
+                                <li><a href="#ruby-auth">Ruby</a></li>
+                                <li><a href="#rust-auth">Rust</a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#troubleshooting">Troubleshooting</a>
+                        </li>
                     </ul>
-                </li>
-                <li>
-                    <a href="#using-api-key">Using Your API Key</a>
-                    <ul>
-                        <li><a href="#header-format">Header Format</a></li>
-                        <li><a href="#security-tips">Security Tips</a></li>
-                    </ul>
-                </li>
-                <li>
-                    <a href="#code-examples">Code Examples</a>
-                    <ul>
-                        <li><a href="#curl-auth">cURL</a></li>
-                        <li><a href="#python-auth">Python</a></li>
-                        <li><a href="#javascript-auth">JavaScript</a></li>
-                        <li><a href="#nodejs-auth">Node.js</a></li>
-                        <li><a href="#go-auth">Go</a></li>
-                        <li><a href="#ruby-auth">Ruby</a></li>
-                        <li><a href="#rust-auth">Rust</a></li>
-                    </ul>
-                </li>
-                <li>
-                    <a href="#troubleshooting">Troubleshooting</a>
-                </li>
-            </ul>
-        </nav>
-    </div>
+                </nav>
+            </div>
 
     <div class="docs-content">
         <h1>Authentication Tutorial</h1>
@@ -601,8 +641,36 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 </ul>
             </div>
         </section>
+        </div>
     </div>
-</div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>Arrow API</h4>
+                <p>Powerful Roblox group membership API</p>
+            </div>
+            <div class="footer-section">
+                <h4>Links</h4>
+                <a href="/docs">Documentation</a>
+                <a href="/docs/auth">Authentication</a>
+                <a href="https://github.com" target="_blank">GitHub</a>
+            </div>
+            <div class="footer-section">
+                <h4>Support</h4>
+                <a href="https://discord.gg/fR4YdqgTnB" target="_blank">Discord Server</a>
+                <a href="https://discord.com/users/1317342800941023242" target="_blank">Contact: .archiveant</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Arrow API. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>
 
 <style>
 .tutorial-step {
