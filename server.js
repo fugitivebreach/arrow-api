@@ -19,8 +19,12 @@ const webRoutes = require('./routes/web');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Connect to MongoDB
-connectDB();
+// Connect to MongoDB (with error handling for Railway)
+if (process.env.MONGODB_URI) {
+  connectDB();
+} else {
+  console.warn('MONGODB_URI not set, skipping database connection');
+}
 
 // View engine setup
 app.set('view engine', 'ejs');
@@ -39,9 +43,9 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({
+  store: process.env.MONGODB_URI ? MongoStore.create({
     mongoUrl: process.env.MONGODB_URI
-  }),
+  }) : undefined,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
@@ -112,9 +116,12 @@ app.use((error, req, res, next) => {
   }
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Arrow API server running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`Dashboard: http://localhost:${PORT}/dashboard`);
-  console.log(`Documentation: http://localhost:${PORT}/docs`);
+  console.log(`Health check: http://localhost:${PORT}/health`);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`Dashboard: http://localhost:${PORT}/dashboard`);
+    console.log(`Documentation: http://localhost:${PORT}/docs`);
+  }
 });
