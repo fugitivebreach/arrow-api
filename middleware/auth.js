@@ -12,10 +12,7 @@ const validateApiKey = async (req, res, next) => {
     }
 
     // First check the old ApiKey collection for backward compatibility
-    let validKey = await ApiKey.findOne({ 
-      key: apiKey, 
-      isActive: true 
-    });
+    let validKey = await ApiKey.findByKey(apiKey);
 
     let user = null;
 
