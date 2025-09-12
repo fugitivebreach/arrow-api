@@ -17,13 +17,12 @@ const connectDB = async () => {
                              process.env.MONGODB_URI.includes('127.0.0.1');
     
     const connectionOptions = {
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 10000,
+      serverSelectionTimeoutMS: 10000,
+      connectTimeoutMS: 15000,
       socketTimeoutMS: 45000,
       maxPoolSize: 10,
-      minPoolSize: 5,
-      maxIdleTimeMS: 30000,
-      authSource: 'admin'
+      minPoolSize: 2,
+      maxIdleTimeMS: 30000
     };
 
     // Only add auth options for remote connections
@@ -32,7 +31,9 @@ const connectDB = async () => {
       connectionOptions.w = 'majority';
     }
 
-    client = new MongoClient(process.env.MONGODB_URI, connectionOptions);
+    // Create client with URI that includes proper encoding
+    const mongoUri = process.env.MONGODB_URI;
+    client = new MongoClient(mongoUri, connectionOptions);
     
     await client.connect();
     
