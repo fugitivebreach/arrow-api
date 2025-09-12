@@ -8,6 +8,8 @@ class RobloxService {
 
   async getGroupMembership(userId, groupId) {
     try {
+      console.log(`Roblox API - Checking membership for user ${userId} in group ${groupId}`);
+      
       // Use public API to get user's groups
       const response = await axios.get(
         `${this.usersURL}/users/${userId}/groups/roles`,
@@ -19,11 +21,28 @@ class RobloxService {
         }
       );
 
+      console.log(`Roblox API - Response status: ${response.status}`);
+      console.log(`Roblox API - Response data structure:`, {
+        hasData: !!response.data,
+        hasDataArray: !!(response.data && response.data.data),
+        groupCount: response.data && response.data.data ? response.data.data.length : 0
+      });
+
       if (response.status === 200 && response.data && response.data.data) {
+        // Log all groups for debugging
+        console.log(`Roblox API - User's groups:`, response.data.data.map(g => ({
+          id: g.group.id,
+          name: g.group.name,
+          rank: g.role.rank,
+          roleName: g.role.name
+        })));
+        
         // Find the specific group in user's groups
         const userGroup = response.data.data.find(group => group.group.id === parseInt(groupId));
+        console.log(`Roblox API - Target group ${groupId} found:`, !!userGroup);
         
         if (userGroup) {
+          console.log(`Roblox API - User is in group with rank: ${userGroup.role.name} (${userGroup.role.rank})`);
           return {
             membership: 'In group',
             rankName: userGroup.role.name,
@@ -34,8 +53,16 @@ class RobloxService {
         }
       }
       
+      console.log(`Roblox API - User not found in group ${groupId}`);
       return { membership: 'Not in group' };
     } catch (error) {
+      console.error('Roblox API error details:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data
+      });
+      
       if (error.response && (error.response.status === 404 || error.response.status === 400)) {
         return { membership: 'Not in group' };
       }
