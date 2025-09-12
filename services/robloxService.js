@@ -55,15 +55,35 @@ class RobloxService {
           
           console.log(`Roblox API - Group members endpoint success, checking ${groupResponse.data?.data?.length || 0} members`);
           
+          // Log the actual member data structure for debugging
+          if (groupResponse.data && groupResponse.data.data && groupResponse.data.data.length > 0) {
+            console.log(`Roblox API - Sample member structure:`, JSON.stringify(groupResponse.data.data[0], null, 2));
+            console.log(`Roblox API - All member user IDs:`, groupResponse.data.data.map(member => {
+              // Handle different possible structures
+              const memberId = member.user?.userId || member.user?.id || member.userId || member.id;
+              return { id: memberId, username: member.user?.name || member.user?.username || member.name || member.username };
+            }));
+          }
+          
           // Check if user is in the group members list
           if (groupResponse.data && groupResponse.data.data) {
-            const userInGroup = groupResponse.data.data.find(member => member.user.userId === parseInt(userId));
+            const targetUserId = parseInt(userId);
+            console.log(`Roblox API - Looking for user ID: ${targetUserId} (type: ${typeof targetUserId})`);
+            
+            const userInGroup = groupResponse.data.data.find(member => {
+              // Try different possible user ID field locations
+              const memberId = member.user?.userId || member.user?.id || member.userId || member.id;
+              const memberIdInt = parseInt(memberId);
+              console.log(`Roblox API - Comparing ${targetUserId} === ${memberIdInt} (${memberId})`);
+              return memberIdInt === targetUserId;
+            });
+            
             if (userInGroup) {
               console.log(`Roblox API - Found user in group via group members endpoint`);
               return {
                 membership: 'In group',
-                rankName: userInGroup.role.name,
-                rankID: userInGroup.role.rank,
+                rankName: userInGroup.role?.name || 'Unknown',
+                rankID: userInGroup.role?.rank || 0,
                 groupName: `Group ${groupId}`,
                 groupID: parseInt(groupId)
               };
