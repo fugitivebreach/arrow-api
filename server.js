@@ -6,22 +6,41 @@ const MongoStore = require('connect-mongo');
 const path = require('path');
 const connectDB = require('./config/database');
 
-// Import passport configuration
-require('./config/passport');
-const passport = require('passport');
+// Import passport configuration (only if Discord OAuth is configured)
+let passport;
+if (process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET) {
+  require('./config/passport');
+  passport = require('passport');
+}
 
-// Import routes
-const robloxRoutes = require('./routes/roblox');
-const { router: authRoutes } = require('./routes/auth');
-const dashboardRoutes = require('./routes/dashboard');
-const webRoutes = require('./routes/web');
+// Import routes with error handling
+let robloxRoutes, authRoutes, dashboardRoutes, webRoutes;
+try {
+  robloxRoutes = require('./routes/roblox');
+  const authModule = require('./routes/auth');
+  authRoutes = authModule.router;
+  dashboardRoutes = require('./routes/dashboard');
+  webRoutes = require('./routes/web');
+  console.log('All routes loaded successfully');
+} catch (error) {
+  console.error('Error loading routes:', error.message);
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Health check endpoint FIRST - before any middleware
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    service: 'Arrow API'
+  });
+});
+
 // Connect to MongoDB (with error handling for Railway)
 if (process.env.MONGODB_URI) {
-  connectDB();
+  connectDB().catch(err => console.error('DB connection failed:', err));
 } else {
   console.warn('MONGODB_URI not set, skipping database connection');
 }
@@ -52,9 +71,11 @@ app.use(session({
   }
 }));
 
-// Passport middleware
-app.use(passport.initialize());
-app.use(passport.session());
+// Passport middleware (only if configured)
+if (passport) {
+  app.use(passport.initialize());
+  app.use(passport.session());
+}
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -62,22 +83,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    service: 'Arrow API'
-  });
-});
-
-// Routes
-app.use('/auth', authRoutes);
-app.use('/', dashboardRoutes);
-app.use('/', webRoutes);
-
-// API routes (for Roblox endpoints)
-app.use('/', robloxRoutes);
+// Routes (only if loaded successfully)
+if (authRoutes) app.use('/auth', authRoutes);
+if (dashboardRoutes) app.use('/', dashboardRoutes);
+if (webRoutes) app.use('/', webRoutes);
+if (robloxRoutes) app.use('/', robloxRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
