@@ -9,6 +9,25 @@ passport.use(new DiscordStrategy({
   scope: ['identify', 'email']
 }, async (accessToken, refreshToken, profile, done) => {
   try {
+    const { getDB } = require('./database');
+    
+    // Check if database is available
+    if (!getDB()) {
+      console.warn('Database not available during OAuth callback, creating temporary user session');
+      // Create a temporary user object for the session
+      const tempUser = {
+        _id: `temp_${profile.id}`,
+        discordId: profile.id,
+        username: profile.username,
+        discriminator: profile.discriminator,
+        avatar: profile.avatar,
+        email: profile.email,
+        lastLogin: new Date(),
+        isTemporary: true
+      };
+      return done(null, tempUser);
+    }
+    
     let user = await User.findOne({ discordId: profile.id });
     
     if (user) {
@@ -48,6 +67,22 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id, done) => {
   try {
+    // Handle temporary users (when database is unavailable)
+    if (typeof id === 'string' && id.startsWith('temp_')) {
+      const tempUser = {
+        _id: id,
+        discordId: id.replace('temp_', ''),
+        isTemporary: true
+      };
+      return done(null, tempUser);
+    }
+    
+    const { getDB } = require('./database');
+    if (!getDB()) {
+      console.warn('Database not available during user deserialization');
+      return done(null, null);
+    }
+    
     const user = await User.findById(id);
     done(null, user);
   } catch (error) {

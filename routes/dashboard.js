@@ -7,6 +7,26 @@ const crypto = require('crypto');
 // Dashboard routes
 router.get('/dashboard', ensureAuthenticated, async (req, res) => {
   try {
+    const { getDB } = require('../config/database');
+    
+    // Handle temporary users (when database is unavailable)
+    if (req.user.isTemporary) {
+      return res.render('dashboard', { 
+        user: req.user,
+        title: 'Dashboard - Arrow API',
+        dbUnavailable: true
+      });
+    }
+    
+    // Check if database is available
+    if (!getDB()) {
+      return res.render('dashboard', { 
+        user: req.user,
+        title: 'Dashboard - Arrow API',
+        dbUnavailable: true
+      });
+    }
+    
     const user = await User.findById(req.user._id);
     res.render('dashboard', { 
       user: user,
@@ -21,6 +41,16 @@ router.get('/dashboard', ensureAuthenticated, async (req, res) => {
 // Generate new API key
 router.post('/dashboard/api-key/generate', ensureAuthenticated, async (req, res) => {
   try {
+    const { getDB } = require('../config/database');
+    
+    // Check if database is available
+    if (!getDB() || req.user.isTemporary) {
+      return res.status(503).json({ 
+        error: 'Database unavailable', 
+        message: 'Cannot generate API keys without database connection' 
+      });
+    }
+    
     const { name } = req.body;
     const user = await User.findById(req.user._id);
     
@@ -37,6 +67,16 @@ router.post('/dashboard/api-key/generate', ensureAuthenticated, async (req, res)
 // Delete API key
 router.delete('/dashboard/api-key/:keyId', ensureAuthenticated, async (req, res) => {
   try {
+    const { getDB } = require('../config/database');
+    
+    // Check if database is available
+    if (!getDB() || req.user.isTemporary) {
+      return res.status(503).json({ 
+        error: 'Database unavailable', 
+        message: 'Cannot delete API keys without database connection' 
+      });
+    }
+    
     const user = await User.findById(req.user._id);
     const keyIndex = user.apiKeys.findIndex(key => key._id.toString() === req.params.keyId);
     

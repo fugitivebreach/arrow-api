@@ -48,18 +48,22 @@ if (process.env.MONGODB_URI) {
   console.warn('MONGODB_URI not set, skipping database connection');
 }
 
-// Disable authentication routes if no database connection
+// Check database connection for auth routes (but allow OAuth callback to proceed)
 app.use((req, res, next) => {
   const { getDB } = require('./config/database');
   if (req.path.startsWith('/auth/') && !getDB()) {
+    // Allow Discord OAuth callback to proceed even without DB
     if (req.path.startsWith('/auth/discord/callback')) {
-      // Redirect to home with error message for callback
-      return res.redirect('/?error=database_unavailable');
+      console.warn('Processing Discord callback without database connection');
+      return next();
     }
-    return res.status(503).json({
-      error: 'Authentication unavailable',
-      message: 'Database connection required for authentication'
-    });
+    // Block other auth routes if no database
+    if (req.path.startsWith('/auth/discord') && req.method === 'GET') {
+      return res.status(503).json({
+        error: 'Authentication unavailable',
+        message: 'Database connection required for authentication'
+      });
+    }
   }
   next();
 });
