@@ -4,7 +4,7 @@ const cors = require('cors');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const path = require('path');
-const connectDB = require('./config/database');
+const { connectDB } = require('./config/database');
 
 // Import passport configuration (only if Discord OAuth is configured)
 let passport;

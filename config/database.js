@@ -1,4 +1,7 @@
-const mongoose = require('mongoose');
+const { MongoClient } = require('mongodb');
+
+let db = null;
+let client = null;
 
 const connectDB = async () => {
   try {
@@ -6,12 +9,11 @@ const connectDB = async () => {
       throw new Error('MONGODB_URI environment variable is not set');
     }
 
-    const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    client = new MongoClient(process.env.MONGODB_URI);
+    await client.connect();
+    db = client.db();
+    
+    console.log(`MongoDB Connected: ${client.topology.s.options.hosts[0].host}`);
     
     // Initialize default API keys if none exist
     await initializeApiKeys();
@@ -30,4 +32,7 @@ const initializeApiKeys = async () => {
   console.log('API key management handled through user dashboard');
 };
 
-module.exports = connectDB;
+const getDB = () => db;
+const getClient = () => client;
+
+module.exports = { connectDB, getDB, getClient };
