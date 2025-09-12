@@ -137,73 +137,6 @@ function copyApiKey(key) {
     });
 }
 
-// Cookie management
-async function updateCookie() {
-    const cookieInput = document.getElementById('robloxCookie');
-    const cookie = cookieInput.value.trim();
-    
-    if (!cookie) {
-        showAlert('Please enter a Roblox cookie', 'warning');
-        return;
-    }
-    
-    // Check cooldown first
-    const cooldownResponse = await fetch('/dashboard/cookie/cooldown');
-    const cooldownData = await cooldownResponse.json();
-    
-    if (!cooldownData.canRegenerate) {
-        showAlert(`Cookie update is on cooldown. Please wait ${cooldownData.timeLeft} seconds.`, 'warning');
-        startCooldownTimer(cooldownData.timeLeft);
-        return;
-    }
-    
-    try {
-        const response = await fetch('/dashboard/cookie/update', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ cookie })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            showAlert('Cookie updated successfully!', 'success');
-            cookieInput.value = '';
-            startCooldownTimer(5); // Start 5-second cooldown
-        } else {
-            showAlert(data.error || 'Failed to update cookie', 'error');
-        }
-    } catch (error) {
-        console.error('Error updating cookie:', error);
-        showAlert('Failed to update cookie', 'error');
-    }
-}
-
-function startCooldownTimer(seconds) {
-    const updateBtn = document.getElementById('updateCookieBtn');
-    const cooldownDiv = document.getElementById('cookieCooldown');
-    const cooldownText = document.getElementById('cooldownText');
-    
-    if (!updateBtn || !cooldownDiv || !cooldownText) return;
-    
-    updateBtn.disabled = true;
-    cooldownDiv.classList.remove('hidden');
-    
-    let timeLeft = seconds;
-    
-    const timer = setInterval(() => {
-        cooldownText.textContent = `Cooldown: ${timeLeft}s`;
-        timeLeft--;
-        
-        if (timeLeft < 0) {
-            clearInterval(timer);
-            updateBtn.disabled = false;
-            cooldownDiv.classList.add('hidden');
-        }
-    }, 1000);
-}
 
 // Alert system
 function showAlert(message, type = 'info') {
@@ -276,24 +209,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Check cookie cooldown on page load
-    if (document.getElementById('cookieCooldown')) {
-        checkCookieCooldown();
-    }
 });
 
-async function checkCookieCooldown() {
-    try {
-        const response = await fetch('/dashboard/cookie/cooldown');
-        const data = await response.json();
-        
-        if (!data.canRegenerate && data.timeLeft > 0) {
-            startCooldownTimer(data.timeLeft);
-        }
-    } catch (error) {
-        console.error('Error checking cookie cooldown:', error);
-    }
-}
 
 // Mobile menu toggle (if needed)
 function toggleMobileMenu() {

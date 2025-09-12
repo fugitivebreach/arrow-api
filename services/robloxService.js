@@ -1,68 +1,42 @@
 const axios = require('axios');
-const Cookie = require('../models/Cookie');
 
 class RobloxService {
   constructor() {
-    this.baseURL = 'https://groups.roblox.com/v1/groups';
+    this.baseURL = 'https://groups.roblox.com/v1';
+    this.usersURL = 'https://users.roblox.com/v1';
   }
 
-  async getCookie(user = null) {
+  async getGroupMembership(userId, groupId) {
     try {
-      // First priority: User-specific cookie if user is provided
-      if (user && user.robloxCookie && user.robloxCookie.value) {
-        return user.robloxCookie.value;
-      }
-      
-      // Second priority: Global cookie from Cookie collection
-      const cookie = await Cookie.findOne({ 
-        name: 'ROBLOSECURITY', 
-        isActive: true 
-      });
-      
-      if (cookie) {
-        return cookie.value;
-      }
-      
-      // Fallback to environment variable
-      return process.env.ROBLOX_COOKIE;
-    } catch (error) {
-      console.error('Error fetching cookie:', error);
-      return process.env.ROBLOX_COOKIE;
-    }
-  }
-
-  async getGroupMembership(userId, groupId, user = null) {
-    try {
-      const cookie = await this.getCookie(user);
-      
-      if (!cookie) {
-        throw new Error('No Roblox cookie available');
-      }
-
+      // Use public API to get user's groups
       const response = await axios.get(
-        `${this.baseURL}/${groupId}/users/${userId}`,
+        `${this.usersURL}/users/${userId}/groups/roles`,
         {
           headers: {
-            'Cookie': `.ROBLOSECURITY=${cookie}`,
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
           },
           timeout: 10000
         }
       );
 
-      if (response.status === 200 && response.data) {
-        return {
-          membership: 'In group',
-          rankName: response.data.role.name,
-          rankID: response.data.role.rank,
-          groupName: response.data.group.name,
-          groupID: response.data.group.id
-        };
+      if (response.status === 200 && response.data && response.data.data) {
+        // Find the specific group in user's groups
+        const userGroup = response.data.data.find(group => group.group.id === parseInt(groupId));
+        
+        if (userGroup) {
+          return {
+            membership: 'In group',
+            rankName: userGroup.role.name,
+            rankID: userGroup.role.rank,
+            groupName: userGroup.group.name,
+            groupID: userGroup.group.id
+          };
+        }
       }
       
       return { membership: 'Not in group' };
     } catch (error) {
-      if (error.response && error.response.status === 404) {
+      if (error.response && (error.response.status === 404 || error.response.status === 400)) {
         return { membership: 'Not in group' };
       }
       

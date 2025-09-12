@@ -18,33 +18,9 @@ const connectDB = async () => {
 };
 
 const initializeApiKeys = async () => {
-  try {
-    const ApiKey = require('../models/ApiKey');
-    
-    const existingKeys = await ApiKey.countDocuments();
-    
-    if (existingKeys === 0) {
-      const apiKeysString = process.env.API_KEYS;
-      if (apiKeysString) {
-        const apiKeys = apiKeysString.split(',');
-        
-        for (let i = 0; i < apiKeys.length; i++) {
-          const key = apiKeys[i].trim();
-          if (key) {
-            await ApiKey.create({
-              key: key,
-              name: `Default Key ${i + 1}`,
-              isActive: true
-            });
-          }
-        }
-        
-        console.log(`Initialized ${apiKeys.length} API keys from environment`);
-      }
-    }
-  } catch (error) {
-    console.error('Error initializing API keys:', error);
-  }
+  // API keys are now managed through user accounts via Discord OAuth
+  // No need to initialize from environment variables
+  console.log('API key management handled through user dashboard');
 };
 
 module.exports = connectDB;

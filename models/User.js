@@ -49,20 +49,6 @@ const userSchema = new mongoose.Schema({
       default: true
     }
   }],
-  robloxCookie: {
-    value: {
-      type: String,
-      default: null
-    },
-    updatedAt: {
-      type: Date,
-      default: null
-    },
-    lastRegenerated: {
-      type: Date,
-      default: null
-    }
-  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -84,16 +70,5 @@ userSchema.methods.generateApiKey = function(name) {
   return key;
 };
 
-userSchema.methods.canRegenerateCookie = function() {
-  if (!this.robloxCookie.lastRegenerated) return true;
-  const fiveSecondsAgo = new Date(Date.now() - 5000);
-  return this.robloxCookie.lastRegenerated < fiveSecondsAgo;
-};
-
-userSchema.methods.updateCookie = function(newCookie) {
-  this.robloxCookie.value = newCookie;
-  this.robloxCookie.updatedAt = new Date();
-  this.robloxCookie.lastRegenerated = new Date();
-};
 
 module.exports = mongoose.model('User', userSchema);

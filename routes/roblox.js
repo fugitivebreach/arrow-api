@@ -25,8 +25,8 @@ router.get('/:robloxuserid/:groupid', validateApiKey, async (req, res) => {
       });
     }
 
-    // Get group membership data (pass user if available for user-specific cookies)
-    const membershipData = await robloxService.getGroupMembership(userId, groupId, req.apiKeyUser);
+    // Get group membership data using public API
+    const membershipData = await robloxService.getGroupMembership(userId, groupId);
     
     // Prepare response
     const response = {

@@ -14,9 +14,6 @@
                     <li><a href="#api-keys" class="nav-tab" data-tab="api-keys">
                         <i class="fas fa-key"></i> API Keys
                     </a></li>
-                    <li><a href="#cookies" class="nav-tab" data-tab="cookies">
-                        <i class="fas fa-cookie-bite"></i> Cookies
-                    </a></li>
                     <li><a href="#usage" class="nav-tab" data-tab="usage">
                         <i class="fas fa-chart-line"></i> Usage
                     </a></li>
@@ -71,10 +68,6 @@
                         <button class="btn" onclick="switchTab('api-keys')">
                             <i class="fas fa-plus"></i>
                             Generate API Key
-                        </button>
-                        <button class="btn" onclick="switchTab('cookies')">
-                            <i class="fas fa-cookie-bite"></i>
-                            Update Cookie
                         </button>
                         <a href="/docs" class="btn">
                             <i class="fas fa-book"></i>
@@ -133,50 +126,6 @@
                 </div>
             </div>
 
-            <!-- Cookies Tab -->
-            <div id="cookies" class="tab-panel">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">Roblox Cookie Management</h2>
-                        <p class="card-subtitle">Update your Roblox authentication cookie (5 second cooldown)</p>
-                    </div>
-
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i>
-                        Your Roblox cookie is used to authenticate API requests to Roblox services. Keep it secure and update it if needed.
-                    </div>
-
-                    <div class="cookie-status">
-                        <div class="status-item">
-                            <span class="status-label">Current Status:</span>
-                            <span class="status-value <%= user.robloxCookie.value ? 'status-active' : 'status-inactive' %>">
-                                <%= user.robloxCookie.value ? 'Active' : 'Not Set' %>
-                            </span>
-                        </div>
-                        <% if (user.robloxCookie.updatedAt) { %>
-                        <div class="status-item">
-                            <span class="status-label">Last Updated:</span>
-                            <span class="status-value"><%= new Date(user.robloxCookie.updatedAt).toLocaleString() %></span>
-                        </div>
-                        <% } %>
-                    </div>
-
-                    <div class="cookie-form">
-                        <div class="form-group">
-                            <label class="form-label" for="robloxCookie">Roblox Cookie (.ROBLOSECURITY)</label>
-                            <textarea id="robloxCookie" class="form-input" rows="3" placeholder="Paste your Roblox .ROBLOSECURITY cookie here"></textarea>
-                        </div>
-                        <button class="btn btn-primary" id="updateCookieBtn" onclick="updateCookie()">
-                            <i class="fas fa-save"></i>
-                            Update Cookie
-                        </button>
-                        <div id="cookieCooldown" class="cooldown-timer hidden">
-                            <i class="fas fa-clock"></i>
-                            <span id="cooldownText">Cooldown: 5s</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <!-- Usage Tab -->
             <div id="usage" class="tab-panel">
