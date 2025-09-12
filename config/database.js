@@ -12,26 +12,37 @@ const connectDB = async () => {
 
     console.log('Attempting MongoDB connection...');
     
-    // Wrap the connection attempt to prevent unhandled promise rejections
-    const connectionPromise = new Promise(async (resolve, reject) => {
-      try {
-        client = new MongoClient(process.env.MONGODB_URI, {
-          serverSelectionTimeoutMS: 3000,
-          connectTimeoutMS: 5000,
-          authSource: 'admin',
-          retryWrites: true,
-          w: 'majority'
-        });
-        
-        await client.connect();
-        db = client.db();
-        resolve();
-      } catch (err) {
-        reject(err);
-      }
-    });
+    // Parse the MongoDB URI to check if it's a local connection
+    const isLocalConnection = process.env.MONGODB_URI.includes('localhost') || 
+                             process.env.MONGODB_URI.includes('127.0.0.1');
+    
+    const connectionOptions = {
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,
+      minPoolSize: 5,
+      maxIdleTimeMS: 30000,
+      bufferMaxEntries: 0,
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    };
 
-    await connectionPromise;
+    // Only add auth options for remote connections
+    if (!isLocalConnection) {
+      connectionOptions.authSource = 'admin';
+      connectionOptions.retryWrites = true;
+      connectionOptions.w = 'majority';
+    }
+
+    client = new MongoClient(process.env.MONGODB_URI, connectionOptions);
+    
+    await client.connect();
+    
+    // Test the connection
+    await client.db().admin().ping();
+    
+    db = client.db();
     console.log('MongoDB Connected successfully');
     await initializeApiKeys();
     
@@ -39,7 +50,6 @@ const connectDB = async () => {
     console.error('Database connection failed:', error.message);
     console.warn('Continuing without database connection...');
     db = null;
-    client = null;
     
     // Ensure any partial connections are cleaned up
     if (client) {

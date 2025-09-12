@@ -50,7 +50,12 @@ if (process.env.MONGODB_URI) {
 
 // Disable authentication routes if no database connection
 app.use((req, res, next) => {
-  if (!process.env.MONGODB_URI && req.path.startsWith('/auth/')) {
+  const { getDB } = require('./config/database');
+  if (req.path.startsWith('/auth/') && !getDB()) {
+    if (req.path.startsWith('/auth/discord/callback')) {
+      // Redirect to home with error message for callback
+      return res.redirect('/?error=database_unavailable');
+    }
     return res.status(503).json({
       error: 'Authentication unavailable',
       message: 'Database connection required for authentication'
