@@ -1,5 +1,5 @@
 const { Client, GatewayIntentBits, SlashCommandBuilder, EmbedBuilder, REST, Routes } = require('discord.js');
-const { connectToDatabase } = require('./config/database');
+const { getDB } = require('./config/database');
 
 // Configuration - Add these to your .env file
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
@@ -99,7 +99,11 @@ function isAuthorized(interaction) {
 // Get user's API keys from database
 async function getUserApiKeys(userId) {
     try {
-        const db = await connectToDatabase();
+        const db = getDB();
+        if (!db) {
+            return [];
+        }
+        
         const user = await db.collection('users').findOne({ discordId: userId });
         
         if (!user || !user.apiKeys) {
@@ -116,7 +120,10 @@ async function getUserApiKeys(userId) {
 // Blacklist user
 async function blacklistUser(userId) {
     try {
-        const db = await connectToDatabase();
+        const db = getDB();
+        if (!db) {
+            return { success: false, error: 'DATABASE_ERROR' };
+        }
         
         // Check if user exists in database
         const user = await db.collection('users').findOne({ discordId: userId });
@@ -166,7 +173,10 @@ async function blacklistUser(userId) {
 // Remove user from blacklist
 async function removeFromBlacklist(userId) {
     try {
-        const db = await connectToDatabase();
+        const db = getDB();
+        if (!db) {
+            return { success: false, error: 'DATABASE_ERROR' };
+        }
         
         // Check if user exists in database
         const user = await db.collection('users').findOne({ discordId: userId });
@@ -198,7 +208,7 @@ async function removeFromBlacklist(userId) {
 }
 
 // Bot ready event
-client.once('ready', async () => {
+client.once('clientReady', async () => {
     console.log(`Discord bot logged in as ${client.user.tag}!`);
     await registerCommands();
 });
