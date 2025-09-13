@@ -223,7 +223,7 @@ client.once('clientReady', async () => {
     await registerCommands();
     
     // Auto-send verification panel to configured channel
-    if (VERIFICATION_CHANNEL_ID && VERIFICATION_CHANNEL_ID !== '1415406431217127494') {
+    if (VERIFICATION_CHANNEL_ID && VERIFICATION_CHANNEL_ID !== 'your_verification_channel_id_here') {
         try {
             const channel = await client.channels.fetch(VERIFICATION_CHANNEL_ID);
             if (channel && channel.isTextBased()) {
