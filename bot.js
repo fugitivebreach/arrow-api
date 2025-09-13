@@ -55,7 +55,8 @@ const commands = [
 ].map(command => command.toJSON());
 
 // Register commands
-const { REST, Routes } = require('@discordjs/rest');
+const { REST } = require('@discordjs/rest');
+const { Routes } = require('discord-api-types/v10');
 const rest = new REST({ version: '10' }).setToken(DISCORD_BOT_TOKEN);
 
 async function registerCommands() {
@@ -370,6 +371,17 @@ client.on('interactionCreate', async interaction => {
                 .setColor('#FFFFFF');
 
             return interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+
+        // Purge messages in the channel before sending panel
+        try {
+            const channel = interaction.channel;
+            if (channel && channel.isTextBased()) {
+                const messages = await channel.messages.fetch({ limit: 100 });
+                await channel.bulkDelete(messages.filter(msg => !msg.pinned && (Date.now() - msg.createdTimestamp) < 1209600000)); // 14 days limit
+            }
+        } catch (error) {
+            console.log('Could not purge messages:', error.message);
         }
 
         // Create verification panel
