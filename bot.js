@@ -221,6 +221,48 @@ async function removeFromBlacklist(userId) {
 client.once('clientReady', async () => {
     console.log(`Discord bot logged in as ${client.user.tag}!`);
     await registerCommands();
+    
+    // Auto-send verification panel to configured channel
+    if (VERIFICATION_CHANNEL_ID && VERIFICATION_CHANNEL_ID !== '1415406431217127494') {
+        try {
+            const channel = await client.channels.fetch(VERIFICATION_CHANNEL_ID);
+            if (channel && channel.isTextBased()) {
+                // Purge messages in the channel
+                try {
+                    const messages = await channel.messages.fetch({ limit: 100 });
+                    await channel.bulkDelete(messages.filter(msg => !msg.pinned && (Date.now() - msg.createdTimestamp) < 1209600000)); // 14 days limit
+                    console.log('Verification channel messages purged');
+                } catch (purgeError) {
+                    console.log('Could not purge messages in verification channel:', purgeError.message);
+                }
+
+                // Send verification panel
+                const embed = new EmbedBuilder()
+                    .setAuthor({ 
+                        name: client.user.username, 
+                        iconURL: client.user.displayAvatarURL() 
+                    })
+                    .setTitle('LINK DISCORD ACCOUNT')
+                    .setDescription('Use the button below to link your account to receive roles in our server.')
+                    .setColor('#FFFFFF');
+
+                const button = new ButtonBuilder()
+                    .setCustomId('link_account')
+                    .setLabel('Link')
+                    .setStyle(ButtonStyle.Secondary);
+
+                const row = new ActionRowBuilder()
+                    .addComponents(button);
+
+                await channel.send({ embeds: [embed], components: [row] });
+                console.log('Verification panel sent to channel:', VERIFICATION_CHANNEL_ID);
+            }
+        } catch (error) {
+            console.error('Failed to send verification panel to channel:', error.message);
+        }
+    } else {
+        console.log('VERIFICATION_CHANNEL_ID not configured - skipping auto panel send');
+    }
 });
 
 // Handle slash commands
