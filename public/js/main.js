@@ -241,3 +241,55 @@ function copyToClipboard(text) {
         return Promise.resolve();
     }
 }
+
+// Language switcher functionality
+function toggleLanguageMenu() {
+    const menu = document.getElementById('language-menu');
+    if (menu) {
+        menu.classList.toggle('show');
+    }
+}
+
+function setLanguage(lang) {
+    const currentLang = document.getElementById('current-language');
+    const languages = {
+        'en': 'English',
+        'es': 'Español', 
+        'fr': 'Français',
+        'de': 'Deutsch',
+        'ja': '日本語',
+        'zh': '中文'
+    };
+    
+    if (currentLang && languages[lang]) {
+        currentLang.textContent = languages[lang];
+    }
+    toggleLanguageMenu();
+    
+    // Here you would implement actual language switching logic
+    console.log('Language switched to:', lang);
+}
+
+// Dropdown functionality for sidebar navigation
+function toggleDropdown(element) {
+    const dropdown = element.parentElement;
+    dropdown.classList.toggle('active');
+    
+    // Close other dropdowns
+    const allDropdowns = document.querySelectorAll('.dropdown');
+    allDropdowns.forEach(dd => {
+        if (dd !== dropdown) {
+            dd.classList.remove('active');
+        }
+    });
+}
+
+// Close language menu when clicking outside
+document.addEventListener('click', function(event) {
+    const languageSwitcher = document.querySelector('.language-switcher');
+    const languageMenu = document.getElementById('language-menu');
+    
+    if (languageSwitcher && languageMenu && !languageSwitcher.contains(event.target)) {
+        languageMenu.classList.remove('show');
+    }
+});

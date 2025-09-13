@@ -34,6 +34,23 @@
                         Login with Discord
                     </a>
                 <% } %>
+                
+                <!-- Language Switcher -->
+                <div class="language-switcher">
+                    <div class="language-dropdown" onclick="toggleLanguageMenu()">
+                        <i class="fas fa-globe"></i>
+                        <span id="current-language">English</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="language-menu" id="language-menu">
+                        <a href="#" class="language-option" onclick="setLanguage('en')">English</a>
+                        <a href="#" class="language-option" onclick="setLanguage('es')">Español</a>
+                        <a href="#" class="language-option" onclick="setLanguage('fr')">Français</a>
+                        <a href="#" class="language-option" onclick="setLanguage('de')">Deutsch</a>
+                        <a href="#" class="language-option" onclick="setLanguage('ja')">日本語</a>
+                        <a href="#" class="language-option" onclick="setLanguage('zh')">中文</a>
+                    </div>
+                </div>
             </div>
         </div>
     </nav>
@@ -44,49 +61,57 @@
                 <nav class="docs-nav">
                     <ul>
                         <li>
-                            <a href="#getting-started">Getting Started</a>
+                            <a href="/docs">Getting Started</a>
                             <ul>
-                                <li><a href="#overview">Overview</a></li>
-                                <li><a href="#authentication">Authentication</a></li>
-                                <li><a href="#base-url">Base URL</a></li>
+                                <li><a href="/docs#overview">Overview</a></li>
+                                <li><a href="/docs#authentication">Authentication</a></li>
+                                <li><a href="/docs#base-url">Base URL</a></li>
                             </ul>
                         </li>
-                <li>
-                    <a href="#endpoints">API Endpoints</a>
-                    <ul>
-                        <li><a href="#group-membership">Group Membership</a></li>
-                        <li><a href="#user-profile">User Profile</a></li>
-                        <li><a href="#user-games">User Games</a></li>
-                        <li><a href="#group-extended">Group Extended</a></li>
-                        <li><a href="#social-apis">Social APIs</a></li>
-                        <li><a href="#presence-apis">Presence APIs</a></li>
-                        <li><a href="#asset-apis">Asset APIs</a></li>
-                        <li><a href="#health-check">Health Check</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" onclick="toggleDropdown(this)">ROBLOX APIs</a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/docs/roblox/user-profile">User Profile</a></li>
+                                <li><a href="/docs/roblox/user-games">User Games</a></li>
+                                <li><a href="/docs/roblox/group-membership">Group Membership</a></li>
+                                <li><a href="/docs/roblox/group-extended">Group Extended</a></li>
+                                <li class="dropdown">
+                                    <a href="#" class="dropdown-toggle" onclick="toggleDropdown(this)">Social APIs</a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="/docs/roblox/social/friends">Friends</a></li>
+                                        <li><a href="/docs/roblox/social/followers">Followers</a></li>
+                                        <li><a href="/docs/roblox/social/presence">Presence</a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="/docs/roblox/assets">Asset & Catalog</a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="/docs/examples">Code Examples</a>
+                            <ul>
+                                <li><a href="/docs/examples#curl">cURL</a></li>
+                                <li><a href="/docs/examples#python">Python</a></li>
+                                <li><a href="/docs/examples#javascript">JavaScript</a></li>
+                                <li><a href="/docs/examples#nodejs">Node.js</a></li>
+                                <li><a href="/docs/examples#go">Go</a></li>
+                                <li><a href="/docs/examples#ruby">Ruby</a></li>
+                                <li><a href="/docs/examples#rust">Rust</a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="/docs/responses">Response Format</a>
+                            <ul>
+                                <li><a href="/docs/responses#success">Success Responses</a></li>
+                                <li><a href="/docs/responses#errors">Error Responses</a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="/docs/rate-limits">Rate Limits</a>
+                        </li>
+                        <li>
+                            <a href="/health">Health Check</a>
+                        </li>
                     </ul>
-                </li>
-                <li>
-                    <a href="#code-examples">Code Examples</a>
-                    <ul>
-                        <li><a href="#curl-examples">cURL</a></li>
-                        <li><a href="#python-examples">Python</a></li>
-                        <li><a href="#javascript-examples">JavaScript</a></li>
-                        <li><a href="#nodejs-examples">Node.js</a></li>
-                        <li><a href="#go-examples">Go</a></li>
-                        <li><a href="#ruby-examples">Ruby</a></li>
-                        <li><a href="#rust-examples">Rust</a></li>
-                    </ul>
-                </li>
-                <li>
-                    <a href="#response-format">Response Format</a>
-                    <ul>
-                        <li><a href="#success-responses">Success Responses</a></li>
-                        <li><a href="#error-responses">Error Responses</a></li>
-                    </ul>
-                </li>
-                <li>
-                    <a href="#rate-limits">Rate Limits</a>
-                </li>
-            </ul>
         </nav>
     </div>
 

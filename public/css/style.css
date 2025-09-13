@@ -14,6 +14,54 @@ body {
     display: flex;
     flex-direction: column;
     overflow-x: hidden;
+    position: relative;
+}
+
+/* Animated Background Dots */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+        radial-gradient(circle at 40% 20%, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+        radial-gradient(circle at 60% 70%, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 50px 50px, 80px 80px, 120px 120px, 200px 200px;
+    animation: float 20s ease-in-out infinite;
+    pointer-events: none;
+    z-index: -1;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px) translateX(0px);
+    }
+    25% {
+        transform: translateY(-10px) translateX(5px);
+    }
+    50% {
+        transform: translateY(0px) translateX(-5px);
+    }
+    75% {
+        transform: translateY(10px) translateX(5px);
+    }
+}
+
+/* Responsive dots based on zoom */
+@media (max-width: 1200px) {
+    body::before {
+        background-size: 40px 40px, 60px 60px, 100px 100px, 150px 150px;
+    }
+}
+
+@media (max-width: 768px) {
+    body::before {
+        background-size: 30px 30px, 50px 50px, 80px 80px, 120px 120px;
+    }
 }
 
 /* Navigation */
@@ -54,6 +102,63 @@ body {
     display: flex;
     align-items: center;
     gap: 2rem;
+}
+
+/* Language Switcher */
+.language-switcher {
+    position: relative;
+    display: inline-block;
+}
+
+.language-dropdown {
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid #ffffff;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    color: #ffffff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.language-dropdown:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.language-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: rgba(0, 0, 0, 0.95);
+    border: 1px solid #ffffff;
+    border-radius: 6px;
+    min-width: 150px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    display: none;
+}
+
+.language-menu.active {
+    display: block;
+}
+
+.language-option {
+    padding: 0.75rem 1rem;
+    color: #ffffff;
+    text-decoration: none;
+    display: block;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.language-option:last-child {
+    border-bottom: none;
+}
+
+.language-option:hover {
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .nav-link {
@@ -325,9 +430,9 @@ body {
 /* Documentation Specific */
 .docs-container {
     display: grid;
-    grid-template-columns: 250px 1fr;
+    grid-template-columns: 280px 1fr;
     gap: 2rem;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
     padding: 0 2rem;
 }
@@ -357,6 +462,32 @@ body {
     text-decoration: none;
     font-weight: 600;
     border-bottom: 1px solid #ffffff;
+    cursor: pointer;
+}
+
+/* Dropdown functionality */
+.docs-nav .dropdown {
+    position: relative;
+}
+
+.docs-nav .dropdown-toggle::after {
+    content: '▼';
+    float: right;
+    transition: transform 0.3s ease;
+}
+
+.docs-nav .dropdown.active .dropdown-toggle::after {
+    transform: rotate(180deg);
+}
+
+.docs-nav .dropdown-menu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.docs-nav .dropdown.active .dropdown-menu {
+    max-height: 500px;
 }
 
 .docs-nav ul {

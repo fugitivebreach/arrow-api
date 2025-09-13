@@ -113,6 +113,7 @@ try {
   app.use('/', require('./routes/dashboard'));
   app.use('/', require('./routes/verify'));
   app.use('/', require('./routes/roblox'));
+  app.use('/docs', require('./routes/docs'));
   console.log('All routes loaded successfully');
 } catch (error) {
   console.error('Error loading routes:', error.message);
