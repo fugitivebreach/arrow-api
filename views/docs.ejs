@@ -127,44 +127,89 @@
             <h2>Getting Started</h2>
             
             <h3 id="overview">Overview</h3>
-            <p>The Arrow API is a RESTful API that provides information about Roblox group membership. It's designed to be simple, fast, and reliable for developers who need to integrate Roblox group data into their applications.</p>
+            <p>The Arrow API is a comprehensive RESTful API that provides access to Roblox data including user profiles, group membership, games, social connections, and more. It's designed to be simple, fast, and reliable for developers who need to integrate Roblox data into their applications.</p>
 
-            <h3 id="authentication">Authentication</h3>
-            <p>All API requests require authentication using an API key. Include your API key in the request headers:</p>
-            
-            <div class="alert alert-warning">
-                <strong>Security Notice:</strong> Keep your API keys secure and never expose them in client-side code.
+            <div class="alert alert-info">
+                <strong>🚀 What's New:</strong> We've expanded beyond group membership! Explore our new <a href="/docs/roblox/user-profile">User Profile APIs</a>, <a href="/docs/roblox/social/friends">Social APIs</a>, and more in the sidebar.
             </div>
 
+            <h3 id="authentication">Authentication</h3>
+            <p>All API requests require authentication using an API key. You can generate API keys from your <a href="/dashboard">dashboard</a> after logging in with Discord.</p>
+            
+            <div class="alert alert-warning">
+                <strong>Security Notice:</strong> Keep your API keys secure and never expose them in client-side code. Use environment variables or secure storage.
+            </div>
+
+            <h4>How to Authenticate</h4>
+            <p>Include your API key in the request headers for every API call:</p>
             <div class="code-block">
                 <pre><code>api-key: your-api-key-here</code></pre>
             </div>
 
-            <p><a href="/docs/auth" class="btn">📚 Authentication Tutorial</a></p>
+            <h4>Getting Your API Key</h4>
+            <ol>
+                <li>Visit the <a href="/dashboard">Dashboard</a></li>
+                <li>Log in with your Discord account</li>
+                <li>Generate a new API key</li>
+                <li>Copy and use it in your requests</li>
+            </ol>
 
             <h3 id="base-url">Base URL</h3>
+            <p>All API endpoints use the following base URL:</p>
             <div class="code-block">
                 <pre><code>https://arrow-api.up.railway.app</code></pre>
             </div>
+
+            <h3 id="quick-start">Quick Start Example</h3>
+            <p>Here's a simple example to check if a user is in a group:</p>
+            <div class="code-block">
+                <pre><code>curl -X GET "https://arrow-api.up.railway.app/1/1" \
+  -H "api-key: your-api-key-here"</code></pre>
+            </div>
+
+            <h3 id="api-categories">API Categories</h3>
+            <div class="api-categories-grid">
+                <div class="category-card">
+                    <h4><a href="/docs/roblox/user-profile">👤 User Profile</a></h4>
+                    <p>Get user profiles, headshots, badges, and status messages</p>
+                </div>
+                <div class="category-card">
+                    <h4><a href="/docs/roblox/user-games">🎮 User Games</a></h4>
+                    <p>Access user-created games, favorites, and game information</p>
+                </div>
+                <div class="category-card">
+                    <h4><a href="/docs/roblox/group-membership">👥 Group Membership</a></h4>
+                    <p>Check group membership status and ranks</p>
+                </div>
+                <div class="category-card">
+                    <h4><a href="/docs/roblox/group-extended">🏢 Group Extended</a></h4>
+                    <p>Get group info, roles, wall posts, and allies</p>
+                </div>
+                <div class="category-card">
+                    <h4><a href="/docs/roblox/social/friends">🤝 Social APIs</a></h4>
+                    <p>Access friends, followers, and presence data</p>
+                </div>
+                <div class="category-card">
+                    <h4><a href="/docs/roblox/assets">📦 Assets & Catalog</a></h4>
+                    <p>Get asset info, inventory, and search catalog</p>
+                </div>
+            </div>
         </section>
 
-        <section id="endpoints">
-            <h2>API Endpoints</h2>
-
-            <h3 id="group-membership">Group Membership Check</h3>
-            <p>Check if a Roblox user is a member of a specific group and get their rank information.</p>
-
-            <div class="endpoint-card">
-                <div class="endpoint-header">
-                    <span class="method get">GET</span>
-                    <span class="endpoint-url">/{robloxuserid}/{groupid}</span>
-                </div>
-                
-                <h4>URL Parameters</h4>
-                <table class="params-table">
-                    <thead>
-                        <tr>
-                            <th>Parameter</th>
+        <section id="getting-help">
+            <h2>Need Help?</h2>
+            <p>Visit our dedicated API category pages for comprehensive documentation with multi-language code examples:</p>
+            <ul>
+                <li><a href="/docs/roblox/user-profile">👤 User Profile APIs</a> - Profiles, headshots, badges, status</li>
+                <li><a href="/docs/roblox/user-games">🎮 User Games APIs</a> - Created games, favorites, game info</li>
+                <li><a href="/docs/roblox/group-membership">👥 Group Membership APIs</a> - Membership checking and ranks</li>
+                <li><a href="/docs/roblox/group-extended">🏢 Group Extended APIs</a> - Group info, roles, wall, allies</li>
+                <li><a href="/docs/roblox/social/friends">🤝 Social APIs</a> - Friends, followers, presence</li>
+                <li><a href="/docs/roblox/assets">📦 Assets & Catalog APIs</a> - Asset info, inventory, catalog search</li>
+            </ul>
+        </section>
+    </div>
+</main>
                             <th>Type</th>
                             <th>Description</th>
                         </tr>
