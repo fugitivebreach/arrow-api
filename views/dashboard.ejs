@@ -20,6 +20,7 @@
                 <a href="/docs" class="nav-link">Documentation</a>
                 <% if (typeof user !== 'undefined' && user) { %>
                     <a href="/dashboard" class="nav-link">Dashboard</a>
+                    <a href="/verify" class="nav-link">Verify</a>
                     <div class="user-menu">
                         <img src="https://cdn.discordapp.com/avatars/<%= user.discordId %>/<%= user.avatar %>.png" alt="Avatar" class="user-avatar">
                         <span class="username"><%= user.username %></span>

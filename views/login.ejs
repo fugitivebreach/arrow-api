@@ -18,10 +18,22 @@
             <div class="nav-links">
                 <a href="/" class="nav-link">Home</a>
                 <a href="/docs" class="nav-link">Documentation</a>
-                <a href="/login" class="login-btn">
-                    <i class="fab fa-discord"></i>
-                    Login with Discord
-                </a>
+                <% if (typeof user !== 'undefined' && user) { %>
+                    <a href="/dashboard" class="nav-link">Dashboard</a>
+                    <a href="/verify" class="nav-link">Verify</a>
+                    <div class="user-menu">
+                        <img src="https://cdn.discordapp.com/avatars/<%= user.discordId %>/<%= user.avatar %>.png" alt="Avatar" class="user-avatar">
+                        <span class="username"><%= user.username %></span>
+                        <a href="/auth/logout" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </a>
+                    </div>
+                <% } else { %>
+                    <a href="/login" class="login-btn">
+                        <i class="fab fa-discord"></i>
+                        Login with Discord
+                    </a>
+                <% } %>
             </div>
         </div>
     </nav>
