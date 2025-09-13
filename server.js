@@ -6,27 +6,14 @@ const MongoStore = require('connect-mongo');
 const path = require('path');
 const { connectDB } = require('./config/database');
 
+const app = express();
+
 // Import passport configuration (only if Discord OAuth is configured)
 let passport;
 if (process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET) {
   require('./config/passport');
   passport = require('passport');
 }
-
-// Import routes with error handling
-let robloxRoutes, authRoutes, dashboardRoutes, webRoutes;
-try {
-  robloxRoutes = require('./routes/roblox');
-  const authModule = require('./routes/auth');
-  authRoutes = authModule.router;
-  dashboardRoutes = require('./routes/dashboard');
-  webRoutes = require('./routes/web');
-  console.log('All routes loaded successfully');
-} catch (error) {
-  console.error('Error loading routes:', error.message);
-}
-
-const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Health check endpoint FIRST - before any middleware
@@ -119,11 +106,17 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes (only if loaded successfully)
-if (authRoutes) app.use('/auth', authRoutes);
-if (dashboardRoutes) app.use('/', dashboardRoutes);
-if (webRoutes) app.use('/', webRoutes);
-if (robloxRoutes) app.use('/', robloxRoutes);
+// Import routes with error handling
+try {
+  app.use('/auth', require('./routes/auth'));
+  app.use('/', require('./routes/web'));
+  app.use('/', require('./routes/dashboard'));
+  app.use('/', require('./routes/verify'));
+  app.use('/', require('./routes/roblox'));
+  console.log('All routes loaded successfully');
+} catch (error) {
+  console.error('Error loading routes:', error.message);
+}
 
 // 404 handler
 app.use('*', (req, res) => {

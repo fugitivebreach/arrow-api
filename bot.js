@@ -1,5 +1,6 @@
-const { Client, GatewayIntentBits, SlashCommandBuilder, EmbedBuilder, REST, Routes } = require('discord.js');
+const { Client, GatewayIntentBits, SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 const { getDB } = require('./config/database');
+const VerificationCode = require('./models/VerificationCode');
 
 // Configuration - Add these to your .env file
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
@@ -9,6 +10,10 @@ const GUILD_ID = process.env.DISCORD_GUILD_ID; // Optional: for guild-specific c
 // Authorized role IDs and user IDs - Add these to your .env file as comma-separated values
 const AUTHORIZED_ROLE_IDS = process.env.AUTHORIZED_ROLE_IDS ? process.env.AUTHORIZED_ROLE_IDS.split(',') : [];
 const AUTHORIZED_USER_IDS = process.env.AUTHORIZED_USER_IDS ? process.env.AUTHORIZED_USER_IDS.split(',') : [];
+
+// Verification system configuration
+const VERIFICATION_CHANNEL_ID = process.env.VERIFICATION_CHANNEL_ID;
+const ROLES = process.env.ROLES ? process.env.ROLES.split(',') : [];
 
 const client = new Client({
     intents: [
@@ -44,9 +49,13 @@ const commands = [
                         .setRequired(true)
                 )
         ),
+    new SlashCommandBuilder()
+        .setName('panel')
+        .setDescription('Send verification panel to link Discord accounts'),
 ].map(command => command.toJSON());
 
 // Register commands
+const { REST, Routes } = require('@discordjs/rest');
 const rest = new REST({ version: '10' }).setToken(DISCORD_BOT_TOKEN);
 
 async function registerCommands() {
@@ -347,6 +356,122 @@ client.on('interactionCreate', async interaction => {
                 .setColor('#FFFFFF');
 
             return interaction.reply({ embeds: [embed] });
+        }
+    } else if (commandName === 'panel') {
+        // Check authorization
+        if (!isAuthorized(interaction)) {
+            const embed = new EmbedBuilder()
+                .setAuthor({ 
+                    name: interaction.user.username, 
+                    iconURL: interaction.user.displayAvatarURL() 
+                })
+                .setTitle('Warning - Invalid Credentials')
+                .setDescription('This command is limited to specific role and user ids!')
+                .setColor('#FFFFFF');
+
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+
+        // Create verification panel
+        const embed = new EmbedBuilder()
+            .setAuthor({ 
+                name: client.user.username, 
+                iconURL: client.user.displayAvatarURL() 
+            })
+            .setTitle('LINK DISCORD ACCOUNT')
+            .setDescription('Use the button below to link your account to receive roles in our server.')
+            .setColor('#FFFFFF');
+
+        const button = new ButtonBuilder()
+            .setCustomId('link_account')
+            .setLabel('Link')
+            .setStyle(ButtonStyle.Secondary);
+
+        const row = new ActionRowBuilder()
+            .addComponents(button);
+
+        return interaction.reply({ embeds: [embed], components: [row] });
+    }
+});
+
+// Handle button interactions
+client.on('interactionCreate', async interaction => {
+    if (!interaction.isButton()) return;
+
+    if (interaction.customId === 'link_account') {
+        const modal = new ModalBuilder()
+            .setCustomId('link_form')
+            .setTitle('Link Discord Account');
+
+        const codeInput = new TextInputBuilder()
+            .setCustomId('verification_code')
+            .setLabel('Enter Linking Code')
+            .setStyle(TextInputStyle.Short)
+            .setPlaceholder('Only enter your linking code')
+            .setRequired(true);
+
+        const firstActionRow = new ActionRowBuilder().addComponents(codeInput);
+        modal.addComponents(firstActionRow);
+
+        await interaction.showModal(modal);
+    }
+});
+
+// Handle modal submissions
+client.on('interactionCreate', async interaction => {
+    if (!interaction.isModalSubmit()) return;
+
+    if (interaction.customId === 'link_form') {
+        const code = interaction.fields.getTextInputValue('verification_code');
+        
+        // Validate the code
+        const verificationResult = await VerificationCode.validateCode(code);
+        
+        if (!verificationResult) {
+            const embed = new EmbedBuilder()
+                .setAuthor({ 
+                    name: interaction.user.username, 
+                    iconURL: interaction.user.displayAvatarURL() 
+                })
+                .setTitle('Linking Failed')
+                .setDescription('The code is invalid or no longer exists.')
+                .setColor('#FFFFFF');
+
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+
+        // Assign roles to the user
+        try {
+            const member = await interaction.guild.members.fetch(interaction.user.id);
+            const rolesToAdd = ROLES.filter(roleId => roleId && roleId.trim() !== '');
+            
+            if (rolesToAdd.length > 0) {
+                await member.roles.add(rolesToAdd);
+            }
+
+            const embed = new EmbedBuilder()
+                .setAuthor({ 
+                    name: interaction.user.username, 
+                    iconURL: interaction.user.displayAvatarURL() 
+                })
+                .setTitle('Linking Successful')
+                .setDescription('The code was validated and successfully redeemed. I have added your roles accordingly.')
+                .setColor('#FFFFFF');
+
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        } catch (error) {
+            console.error('Error assigning roles:', error);
+            
+            const embed = new EmbedBuilder()
+                .setAuthor({ 
+                    name: interaction.user.username, 
+                    iconURL: interaction.user.displayAvatarURL() 
+                })
+                .setTitle('Linking Failed')
+                .setDescription('An error occurred while assigning roles. Please contact an administrator.')
+                .setColor('#FFFFFF');
+
+            return interaction.reply({ embeds: [embed], ephemeral: true });
         }
     }
 });
