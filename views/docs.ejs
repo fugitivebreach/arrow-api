@@ -55,6 +55,12 @@
                     <a href="#endpoints">API Endpoints</a>
                     <ul>
                         <li><a href="#group-membership">Group Membership</a></li>
+                        <li><a href="#user-profile">User Profile</a></li>
+                        <li><a href="#user-games">User Games</a></li>
+                        <li><a href="#group-extended">Group Extended</a></li>
+                        <li><a href="#social-apis">Social APIs</a></li>
+                        <li><a href="#presence-apis">Presence APIs</a></li>
+                        <li><a href="#asset-apis">Asset APIs</a></li>
                         <li><a href="#health-check">Health Check</a></li>
                     </ul>
                 </li>
@@ -435,6 +441,476 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }</code></pre>
                     </div>
+                </div>
+            </div>
+
+            <h3 id="user-profile">User Profile APIs</h3>
+            <p>Get detailed information about Roblox users including profile data, headshots, badges, and status.</p>
+
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-url">/user/{userid}/profile</span>
+                </div>
+                
+                <h4>Description</h4>
+                <p>Get comprehensive user profile information including username, display name, description, and join date.</p>
+
+                <h4>URL Parameters</h4>
+                <table class="params-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>userid</code></td>
+                            <td>integer</td>
+                            <td>The Roblox user ID</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="code-block">
+                    <pre><code>curl -X GET "https://arrow-api.up.railway.app/user/1/profile" \
+  -H "api-key: your-api-key-here"</code></pre>
+                </div>
+
+                <h4>Response Example</h4>
+                <div class="code-block">
+                    <pre><code>{
+  "apiKey": "API Key is valid and exists",
+  "profile": {
+    "description": "Welcome to my profile!",
+    "created": "2006-02-27T21:06:40.3Z",
+    "isBanned": false,
+    "externalAppDisplayName": null,
+    "hasVerifiedBadge": false,
+    "id": 1,
+    "name": "Roblox",
+    "displayName": "Roblox"
+  }
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-url">/user/{userid}/headshot</span>
+                </div>
+                
+                <h4>Description</h4>
+                <p><strong>Returns PNG image data directly!</strong> Get user's Roblox headshot/avatar image.</p>
+
+                <h4>URL Parameters</h4>
+                <table class="params-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>userid</code></td>
+                            <td>integer</td>
+                            <td>The Roblox user ID</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4>Query Parameters</h4>
+                <table class="params-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Type</th>
+                            <th>Default</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>size</code></td>
+                            <td>string</td>
+                            <td>150x150</td>
+                            <td>Image size (150x150, 420x420, etc.)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="code-block">
+                    <pre><code>curl -X GET "https://arrow-api.up.railway.app/user/1/headshot?size=420x420" \
+  -H "api-key: your-api-key-here" \
+  --output headshot.png</code></pre>
+                </div>
+
+                <p><strong>Note:</strong> This endpoint returns raw PNG image data with <code>Content-Type: image/png</code> headers. Perfect for direct use in HTML <code>&lt;img&gt;</code> tags or saving to files.</p>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-url">/user/{userid}/badges</span>
+                </div>
+                
+                <h4>Description</h4>
+                <p>Get user's Roblox badges collection.</p>
+
+                <div class="code-block">
+                    <pre><code>curl -X GET "https://arrow-api.up.railway.app/user/1/badges" \
+  -H "api-key: your-api-key-here"</code></pre>
+                </div>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-url">/user/{userid}/status</span>
+                </div>
+                
+                <h4>Description</h4>
+                <p>Get user's current status message.</p>
+
+                <div class="code-block">
+                    <pre><code>curl -X GET "https://arrow-api.up.railway.app/user/1/status" \
+  -H "api-key: your-api-key-here"</code></pre>
+                </div>
+            </div>
+
+            <h3 id="user-games">User Games APIs</h3>
+            <p>Get information about games created by users and their favorites.</p>
+
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-url">/user/{userid}/games</span>
+                </div>
+                
+                <h4>Description</h4>
+                <p>Get games created by the specified user.</p>
+
+                <div class="code-block">
+                    <pre><code>curl -X GET "https://arrow-api.up.railway.app/user/1/games" \
+  -H "api-key: your-api-key-here"</code></pre>
+                </div>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-url">/user/{userid}/favorites</span>
+                </div>
+                
+                <h4>Description</h4>
+                <p>Get user's favorite games.</p>
+
+                <div class="code-block">
+                    <pre><code>curl -X GET "https://arrow-api.up.railway.app/user/1/favorites" \
+  -H "api-key: your-api-key-here"</code></pre>
+                </div>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-url">/game/{gameid}/info</span>
+                </div>
+                
+                <h4>Description</h4>
+                <p>Get detailed information about a specific game.</p>
+
+                <h4>URL Parameters</h4>
+                <table class="params-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>gameid</code></td>
+                            <td>integer</td>
+                            <td>The Roblox game/universe ID</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="code-block">
+                    <pre><code>curl -X GET "https://arrow-api.up.railway.app/game/920587237/info" \
+  -H "api-key: your-api-key-here"</code></pre>
+                </div>
+            </div>
+
+            <h3 id="group-extended">Group Extended APIs</h3>
+            <p>Extended group functionality beyond basic membership checking.</p>
+
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-url">/group/{groupid}/info</span>
+                </div>
+                
+                <h4>Description</h4>
+                <p>Get detailed group information including description, member count, and owner.</p>
+
+                <div class="code-block">
+                    <pre><code>curl -X GET "https://arrow-api.up.railway.app/group/1/info" \
+  -H "api-key: your-api-key-here"</code></pre>
+                </div>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-url">/group/{groupid}/roles</span>
+                </div>
+                
+                <h4>Description</h4>
+                <p>Get all roles in a group with their permissions and rank numbers.</p>
+
+                <div class="code-block">
+                    <pre><code>curl -X GET "https://arrow-api.up.railway.app/group/1/roles" \
+  -H "api-key: your-api-key-here"</code></pre>
+                </div>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-url">/group/{groupid}/wall</span>
+                </div>
+                
+                <h4>Description</h4>
+                <p>Get recent group wall posts.</p>
+
+                <div class="code-block">
+                    <pre><code>curl -X GET "https://arrow-api.up.railway.app/group/1/wall" \
+  -H "api-key: your-api-key-here"</code></pre>
+                </div>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-url">/group/{groupid}/allies</span>
+                </div>
+                
+                <h4>Description</h4>
+                <p>Get group's allied groups.</p>
+
+                <div class="code-block">
+                    <pre><code>curl -X GET "https://arrow-api.up.railway.app/group/1/allies" \
+  -H "api-key: your-api-key-here"</code></pre>
+                </div>
+            </div>
+
+            <h3 id="social-apis">Social APIs</h3>
+            <p>Get social information about users including friends, followers, and following.</p>
+
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-url">/user/{userid}/friends</span>
+                </div>
+                
+                <h4>Description</h4>
+                <p>Get user's friends list.</p>
+
+                <div class="code-block">
+                    <pre><code>curl -X GET "https://arrow-api.up.railway.app/user/1/friends" \
+  -H "api-key: your-api-key-here"</code></pre>
+                </div>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-url">/user/{userid}/followers</span>
+                </div>
+                
+                <h4>Description</h4>
+                <p>Get user's followers.</p>
+
+                <div class="code-block">
+                    <pre><code>curl -X GET "https://arrow-api.up.railway.app/user/1/followers" \
+  -H "api-key: your-api-key-here"</code></pre>
+                </div>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-url">/user/{userid}/following</span>
+                </div>
+                
+                <h4>Description</h4>
+                <p>Get who the user is following.</p>
+
+                <div class="code-block">
+                    <pre><code>curl -X GET "https://arrow-api.up.railway.app/user/1/following" \
+  -H "api-key: your-api-key-here"</code></pre>
+                </div>
+            </div>
+
+            <h3 id="presence-apis">Presence APIs</h3>
+            <p>Get real-time user presence and activity information.</p>
+
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-url">/user/{userid}/presence</span>
+                </div>
+                
+                <h4>Description</h4>
+                <p>Get user's current online status and what game they're playing.</p>
+
+                <div class="code-block">
+                    <pre><code>curl -X GET "https://arrow-api.up.railway.app/user/1/presence" \
+  -H "api-key: your-api-key-here"</code></pre>
+                </div>
+
+                <h4>Response Example</h4>
+                <div class="code-block">
+                    <pre><code>{
+  "apiKey": "API Key is valid and exists",
+  "presence": {
+    "userPresences": [
+      {
+        "userPresenceType": 2,
+        "lastLocation": "Playing Adopt Me!",
+        "placeId": 920587237,
+        "rootPlaceId": 920587237,
+        "gameId": "00000000-0000-0000-0000-000000000000",
+        "universeId": 113491250,
+        "userId": 1,
+        "lastOnline": "2024-01-15T10:30:00.000Z"
+      }
+    ]
+  }
+}</code></pre>
+                </div>
+            </div>
+
+            <h3 id="asset-apis">Asset & Catalog APIs</h3>
+            <p>Get information about Roblox assets, user inventories, and search the catalog.</p>
+
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-url">/asset/{assetid}</span>
+                </div>
+                
+                <h4>Description</h4>
+                <p>Get detailed information about a specific asset (clothing, accessories, etc.).</p>
+
+                <h4>URL Parameters</h4>
+                <table class="params-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>assetid</code></td>
+                            <td>integer</td>
+                            <td>The Roblox asset ID</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="code-block">
+                    <pre><code>curl -X GET "https://arrow-api.up.railway.app/asset/1028595" \
+  -H "api-key: your-api-key-here"</code></pre>
+                </div>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-url">/user/{userid}/inventory/{assettype}</span>
+                </div>
+                
+                <h4>Description</h4>
+                <p>Get user's inventory items by asset type.</p>
+
+                <h4>URL Parameters</h4>
+                <table class="params-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>userid</code></td>
+                            <td>integer</td>
+                            <td>The Roblox user ID</td>
+                        </tr>
+                        <tr>
+                            <td><code>assettype</code></td>
+                            <td>string</td>
+                            <td>Asset type (Hat, Shirt, Pants, etc.) - Optional, defaults to Hat</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="code-block">
+                    <pre><code>curl -X GET "https://arrow-api.up.railway.app/user/1/inventory/Hat" \
+  -H "api-key: your-api-key-here"</code></pre>
+                </div>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <span class="method get">GET</span>
+                    <span class="endpoint-url">/catalog/search</span>
+                </div>
+                
+                <h4>Description</h4>
+                <p>Search the Roblox catalog for items.</p>
+
+                <h4>Query Parameters</h4>
+                <table class="params-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Type</th>
+                            <th>Required</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>keyword</code></td>
+                            <td>string</td>
+                            <td>Yes</td>
+                            <td>Search keyword</td>
+                        </tr>
+                        <tr>
+                            <td><code>category</code></td>
+                            <td>string</td>
+                            <td>No</td>
+                            <td>Category filter (All, Clothing, etc.) - defaults to All</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="code-block">
+                    <pre><code>curl -X GET "https://arrow-api.up.railway.app/catalog/search?keyword=hat&category=Clothing" \
+  -H "api-key: your-api-key-here"</code></pre>
                 </div>
             </div>
 

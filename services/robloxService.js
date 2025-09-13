@@ -4,6 +4,12 @@ class RobloxService {
   constructor() {
     this.baseURL = 'https://groups.roblox.com/v1';
     this.usersURL = 'https://users.roblox.com/v1';
+    this.gamesURL = 'https://games.roblox.com/v1';
+    this.thumbnailsURL = 'https://thumbnails.roblox.com/v1';
+    this.catalogURL = 'https://catalog.roblox.com/v1';
+    this.presenceURL = 'https://presence.roblox.com/v1';
+    this.friendsURL = 'https://friends.roblox.com/v1';
+    this.inventoryURL = 'https://inventory.roblox.com/v1';
   }
 
   async getGroupMembership(userId, groupId) {
@@ -192,7 +198,7 @@ class RobloxService {
 
   async getGroupInfo(groupId) {
     try {
-      const response = await axios.get(`${this.baseURL}/${groupId}`, {
+      const response = await axios.get(`${this.baseURL}/groups/${groupId}`, {
         timeout: 10000
       });
       
@@ -200,6 +206,252 @@ class RobloxService {
     } catch (error) {
       console.error('Error fetching group info:', error);
       throw new Error('Failed to fetch group information');
+    }
+  }
+
+  // User Profile APIs
+  async getUserProfile(userId) {
+    try {
+      const response = await axios.get(`${this.usersURL}/users/${userId}`, {
+        timeout: 10000
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      throw new Error('Failed to fetch user profile');
+    }
+  }
+
+  async getUserHeadshot(userId, size = '150x150', format = 'Png') {
+    try {
+      const response = await axios.get(`${this.thumbnailsURL}/users/avatar-headshot`, {
+        params: {
+          userIds: userId,
+          size: size,
+          format: format
+        },
+        timeout: 10000
+      });
+      
+      if (response.data && response.data.data && response.data.data[0]) {
+        return response.data.data[0].imageUrl;
+      }
+      throw new Error('No headshot data found');
+    } catch (error) {
+      console.error('Error fetching user headshot:', error);
+      throw new Error('Failed to fetch user headshot');
+    }
+  }
+
+  async getUserHeadshotImage(userId, size = '150x150') {
+    try {
+      const imageUrl = await this.getUserHeadshot(userId, size);
+      const response = await axios.get(imageUrl, {
+        responseType: 'arraybuffer',
+        timeout: 10000
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching headshot image:', error);
+      throw new Error('Failed to fetch headshot image');
+    }
+  }
+
+  async getUserBadges(userId) {
+    try {
+      const response = await axios.get(`${this.usersURL}/users/${userId}/roblox-badges`, {
+        timeout: 10000
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user badges:', error);
+      throw new Error('Failed to fetch user badges');
+    }
+  }
+
+  async getUserStatus(userId) {
+    try {
+      const response = await axios.get(`${this.usersURL}/users/${userId}/status`, {
+        timeout: 10000
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user status:', error);
+      throw new Error('Failed to fetch user status');
+    }
+  }
+
+  // Game APIs
+  async getUserGames(userId) {
+    try {
+      const response = await axios.get(`${this.gamesURL}/users/${userId}/games`, {
+        timeout: 10000
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user games:', error);
+      throw new Error('Failed to fetch user games');
+    }
+  }
+
+  async getGameInfo(gameId) {
+    try {
+      const response = await axios.get(`${this.gamesURL}/games`, {
+        params: { universeIds: gameId },
+        timeout: 10000
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching game info:', error);
+      throw new Error('Failed to fetch game info');
+    }
+  }
+
+  async getUserFavoriteGames(userId) {
+    try {
+      const response = await axios.get(`${this.gamesURL}/users/${userId}/favorite/games`, {
+        timeout: 10000
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user favorite games:', error);
+      throw new Error('Failed to fetch user favorite games');
+    }
+  }
+
+  // Group Extended APIs
+  async getGroupRoles(groupId) {
+    try {
+      const response = await axios.get(`${this.baseURL}/groups/${groupId}/roles`, {
+        timeout: 10000
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching group roles:', error);
+      throw new Error('Failed to fetch group roles');
+    }
+  }
+
+  async getGroupWall(groupId) {
+    try {
+      const response = await axios.get(`${this.baseURL}/groups/${groupId}/wall/posts`, {
+        timeout: 10000
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching group wall:', error);
+      throw new Error('Failed to fetch group wall');
+    }
+  }
+
+  async getGroupAllies(groupId) {
+    try {
+      const response = await axios.get(`${this.baseURL}/groups/${groupId}/relationships/allies`, {
+        timeout: 10000
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching group allies:', error);
+      throw new Error('Failed to fetch group allies');
+    }
+  }
+
+  // Social APIs
+  async getUserFriends(userId) {
+    try {
+      const response = await axios.get(`${this.friendsURL}/users/${userId}/friends`, {
+        timeout: 10000
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user friends:', error);
+      throw new Error('Failed to fetch user friends');
+    }
+  }
+
+  async getUserFollowers(userId) {
+    try {
+      const response = await axios.get(`${this.friendsURL}/users/${userId}/followers`, {
+        timeout: 10000
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user followers:', error);
+      throw new Error('Failed to fetch user followers');
+    }
+  }
+
+  async getUserFollowing(userId) {
+    try {
+      const response = await axios.get(`${this.friendsURL}/users/${userId}/followings`, {
+        timeout: 10000
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user following:', error);
+      throw new Error('Failed to fetch user following');
+    }
+  }
+
+  // Presence APIs
+  async getUserPresence(userId) {
+    try {
+      const response = await axios.post(`${this.presenceURL}/presence/users`, {
+        userIds: [userId]
+      }, {
+        timeout: 10000
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user presence:', error);
+      throw new Error('Failed to fetch user presence');
+    }
+  }
+
+  // Asset APIs
+  async getAssetInfo(assetId) {
+    try {
+      const response = await axios.get(`${this.catalogURL}/assets/${assetId}/details`, {
+        timeout: 10000
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching asset info:', error);
+      throw new Error('Failed to fetch asset info');
+    }
+  }
+
+  async getUserInventory(userId, assetType = 'Hat') {
+    try {
+      const response = await axios.get(`${this.inventoryURL}/users/${userId}/assets/collectibles`, {
+        params: {
+          assetType: assetType,
+          sortOrder: 'Desc',
+          limit: 100
+        },
+        timeout: 10000
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user inventory:', error);
+      throw new Error('Failed to fetch user inventory');
+    }
+  }
+
+  async searchCatalog(keyword, category = 'All') {
+    try {
+      const response = await axios.get(`${this.catalogURL}/search/items`, {
+        params: {
+          keyword: keyword,
+          category: category,
+          limit: 30
+        },
+        timeout: 10000
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error searching catalog:', error);
+      throw new Error('Failed to search catalog');
     }
   }
 }
