@@ -39,6 +39,16 @@
 
     <main class="main-content">
         <div class="container">
+            <% if (typeof isBlacklisted !== 'undefined' && isBlacklisted) { %>
+                <div class="blacklist-message">
+                    <div class="alert alert-error">
+                        <i class="fas fa-ban"></i>
+                        <h2>Account Blacklisted</h2>
+                        <p>Your account has been blacklisted from using the Arrow API. All your API keys have been disabled.</p>
+                        <p>If you believe this is an error, please contact support.</p>
+                    </div>
+                </div>
+            <% } else { %>
             <div class="dashboard-grid">
                 <div class="sidebar">
                     <div class="user-info">
@@ -213,6 +223,7 @@
             </div>
             </div>
         </div>
+            <% } %>
     </main>
 
     <footer class="footer">
@@ -229,8 +240,8 @@
             </div>
             <div class="footer-section">
                 <h4>Support</h4>
-                <a href="https://discord.gg" target="_blank">Discord Server</a>
-                <a href="mailto:support@arrowapi.com">Contact</a>
+                <a href="https://discord.gg/fR4YdqgTnB" target="_blank">Discord Server</a>
+                <a href="mailto:archiveant">Contact</a>
             </div>
         </div>
         <div class="footer-bottom">
@@ -437,6 +448,48 @@
     height: 100%;
     background-color: #ffffff;
     transition: width 0.3s ease;
+}
+
+.blacklist-message {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+    padding: 2rem;
+}
+
+.alert-error {
+    background-color: rgba(220, 53, 69, 0.1);
+    border: 2px solid #dc3545;
+    border-radius: 12px;
+    padding: 3rem;
+    text-align: center;
+    max-width: 600px;
+    width: 100%;
+}
+
+.alert-error i {
+    font-size: 4rem;
+    color: #dc3545;
+    margin-bottom: 1.5rem;
+}
+
+.alert-error h2 {
+    color: #dc3545;
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.alert-error p {
+    color: #ffffff;
+    font-size: 1.2rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.alert-error p:last-child {
+    margin-bottom: 0;
 }
 </style>
 

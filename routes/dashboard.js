@@ -28,6 +28,16 @@ router.get('/dashboard', ensureAuthenticated, async (req, res) => {
     }
     
     const user = await User.findById(req.user._id);
+    
+    // Check if user is blacklisted
+    if (user && user.isBlacklisted) {
+      return res.render('dashboard', { 
+        user: user,
+        title: 'Dashboard - Arrow API',
+        isBlacklisted: true
+      });
+    }
+    
     res.render('dashboard', { 
       user: user,
       title: 'Dashboard - Arrow API'

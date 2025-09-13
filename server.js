@@ -162,6 +162,15 @@ app.use((error, req, res, next) => {
   }
 });
 
+// Start Discord bot if token is provided
+if (process.env.DISCORD_BOT_TOKEN) {
+  console.log('Starting Discord bot...');
+  require('./bot');
+} else {
+  console.log('Discord bot disabled - DISCORD_BOT_TOKEN not provided');
+}
+
+// Start server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Arrow API server running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
