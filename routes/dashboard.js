@@ -27,10 +27,24 @@ router.get('/dashboard', ensureAuthenticated, async (req, res) => {
       });
     }
     
-    const user = await User.findById(req.user._id);
+    // Check blacklist status directly from database using discordId (same as bot uses)
+    const db = getDB();
+    const userFromDb = await db.collection('users').findOne({ discordId: req.user.discordId });
     
     console.log(`Dashboard - User ID: ${req.user._id}, Discord ID: ${req.user.discordId}`);
-    console.log(`Dashboard - User blacklist status: ${user ? user.isBlacklisted : 'user not found'}`);
+    console.log(`Dashboard - User blacklist status: ${userFromDb ? userFromDb.isBlacklisted : 'user not found'}`);
+    
+    // Check if user is blacklisted (using direct DB query like the bot does)
+    if (userFromDb && userFromDb.isBlacklisted) {
+      console.log('Dashboard - Showing blacklist message');
+      return res.render('dashboard', { 
+        user: req.user,
+        title: 'Dashboard - Arrow API',
+        isBlacklisted: true
+      });
+    }
+    
+    const user = await User.findById(req.user._id);
     
     // Check if user is blacklisted
     if (user && user.isBlacklisted) {
