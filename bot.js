@@ -345,10 +345,13 @@ client.on('interactionCreate', async interaction => {
 client.on('error', console.error);
 
 // Start the bot
-if (DISCORD_BOT_TOKEN) {
-    client.login(DISCORD_BOT_TOKEN);
+if (DISCORD_BOT_TOKEN && DISCORD_BOT_TOKEN !== 'your_discord_bot_token_here') {
+    client.login(DISCORD_BOT_TOKEN).catch(error => {
+        console.error('Discord bot login failed:', error.message);
+        console.log('Server will continue without Discord bot functionality');
+    });
 } else {
-    console.error('DISCORD_BOT_TOKEN is required in environment variables');
+    console.log('Discord bot disabled - DISCORD_BOT_TOKEN not configured');
 }
 
 module.exports = client;

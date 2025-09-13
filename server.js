@@ -163,11 +163,16 @@ app.use((error, req, res, next) => {
 });
 
 // Start Discord bot if token is provided
-if (process.env.DISCORD_BOT_TOKEN) {
+if (process.env.DISCORD_BOT_TOKEN && process.env.DISCORD_BOT_TOKEN !== 'your_discord_bot_token_here') {
   console.log('Starting Discord bot...');
-  require('./bot');
+  try {
+    require('./bot');
+  } catch (error) {
+    console.error('Discord bot failed to start:', error.message);
+    console.log('Server continuing without Discord bot...');
+  }
 } else {
-  console.log('Discord bot disabled - DISCORD_BOT_TOKEN not provided');
+  console.log('Discord bot disabled - DISCORD_BOT_TOKEN not configured');
 }
 
 // Start server
