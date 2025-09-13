@@ -29,8 +29,12 @@ router.get('/dashboard', ensureAuthenticated, async (req, res) => {
     
     const user = await User.findById(req.user._id);
     
+    console.log(`Dashboard - User ID: ${req.user._id}, Discord ID: ${req.user.discordId}`);
+    console.log(`Dashboard - User blacklist status: ${user ? user.isBlacklisted : 'user not found'}`);
+    
     // Check if user is blacklisted
     if (user && user.isBlacklisted) {
+      console.log('Dashboard - Showing blacklist message');
       return res.render('dashboard', { 
         user: user,
         title: 'Dashboard - Arrow API',
