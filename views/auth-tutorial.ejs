@@ -191,12 +191,12 @@
             <h3 id="curl-auth">cURL</h3>
             <div class="code-block">
                 <pre><code># Basic request with API key
-curl -X GET "https://your-api.railway.app/123456789/987654321" \
+curl -X GET "https://arrow-api.up.railway.app/123456789/987654321" \
   -H "api-key: your-api-key-here"
 
 # Store API key in variable for reuse
 API_KEY="your-api-key-here"
-curl -X GET "https://your-api.railway.app/123456789/987654321" \
+curl -X GET "https://arrow-api.up.railway.app/123456789/987654321" \
   -H "api-key: $API_KEY"</code></pre>
             </div>
 
@@ -209,7 +209,7 @@ import requests
 API_KEY = os.getenv('ARROW_API_KEY')
 
 def make_authenticated_request(user_id, group_id):
-    url = f"https://your-api.railway.app/{user_id}/{group_id}"
+    url = f"https://arrow-api.up.railway.app/{user_id}/{group_id}"
     headers = {
         "api-key": API_KEY
     }
@@ -231,7 +231,7 @@ if result:
 session = requests.Session()
 session.headers.update({"api-key": API_KEY})
 
-response = session.get("https://your-api.railway.app/123456789/987654321")
+response = session.get("https://arrow-api.up.railway.app/123456789/987654321")
 data = response.json()</code></pre>
             </div>
 
@@ -244,7 +244,7 @@ const API_KEY = 'your-api-key-here';
 class ArrowAPIClient {
     constructor(apiKey) {
         this.apiKey = apiKey;
-        this.baseURL = 'https://your-api.railway.app';
+        this.baseURL = 'https://arrow-api.up.railway.app';
     }
     
     async checkMembership(userId, groupId) {
@@ -293,7 +293,7 @@ const API_KEY = process.env.ARROW_API_KEY;
 class ArrowAPIClient {
     constructor(apiKey) {
         this.apiKey = apiKey;
-        this.hostname = 'your-api.railway.app';
+        this.hostname = 'arrow-api.up.railway.app';
     }
     
     checkMembership(userId, groupId) {
@@ -380,7 +380,7 @@ type MembershipResponse struct {
 func NewArrowAPIClient(apiKey string) *ArrowAPIClient {
     return &ArrowAPIClient{
         APIKey:  apiKey,
-        BaseURL: "https://your-api.railway.app",
+        BaseURL: "https://arrow-api.up.railway.app",
         Client: &http.Client{
             Timeout: 30 * time.Second,
         },
@@ -453,7 +453,7 @@ require 'uri'
 class ArrowAPIClient
   def initialize(api_key)
     @api_key = api_key
-    @base_url = 'https://your-api.railway.app'
+    @base_url = 'https://arrow-api.up.railway.app'
   end
   
   def check_membership(user_id, group_id)
@@ -544,7 +544,7 @@ impl ArrowAPIClient {
             
         Self {
             api_key,
-            base_url: "https://your-api.railway.app".to_string(),
+            base_url: "https://arrow-api.up.railway.app".to_string(),
             client,
         }
     }
