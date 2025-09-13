@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rate Limits - Arrow API Documentation</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-arrow-right"></i>
+                <span>Arrow API</span>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/docs" class="nav-link">Documentation</a>
+                <% if (typeof user !== 'undefined' && user) { %>
+                    <a href="/dashboard" class="nav-link">Dashboard</a>
+                    <a href="/verify" class="nav-link">Verify</a>
+                    <div class="user-menu">
+                        <img src="https://cdn.discordapp.com/avatars/<%= user.discordId %>/<%= user.avatar %>.png" alt="Avatar" class="user-avatar">
+                        <span class="username"><%= user.username %></span>
+                        <a href="/auth/logout" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </a>
+                    </div>
+                <% } else { %>
+                    <a href="/login" class="login-btn">
+                        <i class="fab fa-discord"></i>
+                        Login with Discord
+                    </a>
+                <% } %>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="docs-container">
+            <div class="docs-sidebar">
+                <nav class="docs-nav">
+                    <ul>
+                        <li><a href="/docs">Getting Started</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" onclick="toggleDropdown(this)">ROBLOX APIs</a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/docs/roblox/user-profile">User Profile</a></li>
+                                <li><a href="/docs/roblox/user-games">User Games</a></li>
+                                <li><a href="/docs/roblox/group-membership">Group Membership</a></li>
+                                <li><a href="/docs/roblox/group-extended">Group Extended</a></li>
+                                <li class="dropdown">
+                                    <a href="#" class="dropdown-toggle" onclick="toggleDropdown(this)">Social APIs</a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="/docs/roblox/social/friends">Friends</a></li>
+                                        <li><a href="/docs/roblox/social/followers">Followers</a></li>
+                                        <li><a href="/docs/roblox/social/presence">Presence</a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="/docs/roblox/assets">Asset & Catalog</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="/docs/examples">Code Examples</a></li>
+                        <li><a href="/docs/responses">Response Format</a></li>
+                        <li><a href="/docs/rate-limits" class="active">Rate Limits</a></li>
+                        <li><a href="/health">Health Check</a></li>
+                    </ul>
+                </nav>
+            </div>
+
+            <div class="docs-content">
+                <h1>⚡ Rate Limits</h1>
+                <p>Understanding Arrow API rate limits, quotas, and best practices for efficient API usage.</p>
+
+                <div class="alert alert-warning">
+                    <strong>Important:</strong> Rate limits help ensure fair usage and maintain API performance for all users. Exceeding limits will result in temporary request blocking.
+                </div>
+
+                <section id="current-limits">
+                    <h2>Current Rate Limits</h2>
+                    <p>The Arrow API implements the following rate limits per API key:</p>
+
+                    <div class="rate-limits-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Limit Type</th>
+                                    <th>Requests</th>
+                                    <th>Time Window</th>
+                                    <th>Scope</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Standard Rate Limit</strong></td>
+                                    <td>100 requests</td>
+                                    <td>1 hour</td>
+                                    <td>Per API key</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Burst Limit</strong></td>
+                                    <td>10 requests</td>
+                                    <td>1 minute</td>
+                                    <td>Per API key</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Image Downloads</strong></td>
+                                    <td>50 requests</td>
+                                    <td>1 hour</td>
+                                    <td>Per API key (headshot endpoint)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Search Endpoints</strong></td>
+                                    <td>20 requests</td>
+                                    <td>1 hour</td>
+                                    <td>Per API key (catalog search)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <strong>💡 Pro Tip:</strong> Rate limits are tracked separately for different endpoint categories. You can make 100 profile requests AND 50 image downloads within the same hour.
+                    </div>
+                </section>
+
+                <section id="headers">
+                    <h2>Rate Limit Headers</h2>
+                    <p>Every API response includes headers with your current rate limit status:</p>
+
+                    <div class="headers-example">
+                        <pre><code>X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1642680000
+X-RateLimit-Used: 5</code></pre>
+                    </div>
+
+                    <div class="headers-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Header</th>
+                                    <th>Description</th>
+                                    <th>Example</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>X-RateLimit-Limit</code></td>
+                                    <td>Maximum requests allowed in the time window</td>
+                                    <td><code>100</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>X-RateLimit-Remaining</code></td>
+                                    <td>Requests remaining in current window</td>
+                                    <td><code>95</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>X-RateLimit-Reset</code></td>
+                                    <td>Unix timestamp when limit resets</td>
+                                    <td><code>1642680000</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>X-RateLimit-Used</code></td>
+                                    <td>Requests used in current window</td>
+                                    <td><code>5</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="exceeded-limits">
+                    <h2>When Limits Are Exceeded</h2>
+                    <p>If you exceed your rate limit, you'll receive a <code>429 Too Many Requests</code> response:</p>
+
+                    <div class="error-response">
+                        <h4>429 Response Example</h4>
+                        <pre><code>HTTP/1.1 429 Too Many Requests
+Content-Type: application/json
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 0
+X-RateLimit-Reset: 1642680000
+Retry-After: 3600
+
+{
+  "error": "Rate limit exceeded",
+  "code": "RATE_LIMIT_EXCEEDED",
+  "details": {
+    "retryAfter": 3600,
+    "limit": 100,
+    "window": "1h",
+    "resetTime": "2022-01-20T12:00:00Z"
+  }
+}</code></pre>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <strong>Retry-After Header:</strong> Always respect the <code>Retry-After</code> header value before making additional requests.
+                    </div>
+                </section>
+
+                <section id="best-practices">
+                    <h2>Best Practices</h2>
+
+                    <h3>1. Monitor Rate Limit Headers</h3>
+                    <p>Always check rate limit headers in responses to avoid hitting limits:</p>
+
+                    <div class="language-tabs">
+                        <button class="tab-button active" onclick="switchLanguage(this, 'js-monitor')">JavaScript</button>
+                        <button class="tab-button" onclick="switchLanguage(this, 'python-monitor')">Python</button>
+                    </div>
+
+                    <div class="code-example active" id="js-monitor">
+                        <pre><code>function checkRateLimit(response) {
+  const remaining = parseInt(response.headers.get('X-RateLimit-Remaining'));
+  const reset = parseInt(response.headers.get('X-RateLimit-Reset'));
+  const limit = parseInt(response.headers.get('X-RateLimit-Limit'));
+  
+  console.log(`Rate limit: ${limit - remaining}/${limit} used`);
+  
+  if (remaining < 10) {
+    const resetTime = new Date(reset * 1000);
+    console.warn(`⚠️ Low rate limit remaining: ${remaining}`);
+    console.warn(`Resets at: ${resetTime.toISOString()}`);
+  }
+  
+  return {
+    remaining,
+    reset: new Date(reset * 1000),
+    limit
+  };
+}</code></pre>
+                    </div>
+
+                    <div class="code-example" id="python-monitor">
+                        <pre><code>def check_rate_limit(response):
+    """Monitor rate limit from response headers"""
+    remaining = int(response.headers.get('X-RateLimit-Remaining', 0))
+    reset = int(response.headers.get('X-RateLimit-Reset', 0))
+    limit = int(response.headers.get('X-RateLimit-Limit', 0))
+    
+    print(f"Rate limit: {limit - remaining}/{limit} used")
+    
+    if remaining < 10:
+        reset_time = datetime.fromtimestamp(reset)
+        print(f"⚠️ Low rate limit remaining: {remaining}")
+        print(f"Resets at: {reset_time.isoformat()}")
+    
+    return {
+        'remaining': remaining,
+        'reset': reset_time,
+        'limit': limit
+    }</code></pre>
+                    </div>
+
+                    <h3>2. Implement Exponential Backoff</h3>
+                    <p>When you receive a 429 response, implement exponential backoff:</p>
+
+                    <div class="language-tabs">
+                        <button class="tab-button active" onclick="switchLanguage(this, 'js-backoff')">JavaScript</button>
+                        <button class="tab-button" onclick="switchLanguage(this, 'python-backoff')">Python</button>
+                    </div>
+
+                    <div class="code-example active" id="js-backoff">
+                        <pre><code>async function makeRequestWithBackoff(url, options, maxRetries = 3) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, options);
+      
+      if (response.status === 429) {
+        const retryAfter = parseInt(response.headers.get('Retry-After')) || 60;
+        const backoffTime = Math.min(retryAfter * 1000, Math.pow(2, attempt) * 1000);
+        
+        console.log(`Rate limited. Waiting ${backoffTime}ms before retry ${attempt}/${maxRetries}`);
+        
+        if (attempt === maxRetries) {
+          throw new Error('Max retries exceeded due to rate limiting');
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, backoffTime));
+        continue;
+      }
+      
+      return response;
+    } catch (error) {
+      if (attempt === maxRetries) throw error;
+      
+      const backoffTime = Math.pow(2, attempt) * 1000;
+      await new Promise(resolve => setTimeout(resolve, backoffTime));
+    }
+  }
+}</code></pre>
+                    </div>
+
+                    <div class="code-example" id="python-backoff">
+                        <pre><code>import time
+import random
+
+def make_request_with_backoff(url, headers, max_retries=3):
+    """Make request with exponential backoff on rate limits"""
+    
+    for attempt in range(1, max_retries + 1):
+        try:
+            response = requests.get(url, headers=headers)
+            
+            if response.status_code == 429:
+                retry_after = int(response.headers.get('Retry-After', 60))
+                backoff_time = min(retry_after, 2 ** attempt)
+                
+                # Add jitter to prevent thundering herd
+                jitter = random.uniform(0.1, 0.3) * backoff_time
+                total_wait = backoff_time + jitter
+                
+                print(f"Rate limited. Waiting {total_wait:.1f}s before retry {attempt}/{max_retries}")
+                
+                if attempt == max_retries:
+                    raise Exception("Max retries exceeded due to rate limiting")
+                
+                time.sleep(total_wait)
+                continue
+            
+            return response
+            
+        except requests.exceptions.RequestException as e:
+            if attempt == max_retries:
+                raise e
+            
+            backoff_time = 2 ** attempt
+            time.sleep(backoff_time)</code></pre>
+                    </div>
+
+                    <h3>3. Cache Responses</h3>
+                    <p>Implement caching to reduce API calls for frequently requested data:</p>
+
+                    <div class="code-example">
+                        <pre><code>// Simple in-memory cache with TTL
+class APICache {
+  constructor(ttlSeconds = 300) { // 5 minutes default
+    this.cache = new Map();
+    this.ttl = ttlSeconds * 1000;
+  }
+  
+  get(key) {
+    const item = this.cache.get(key);
+    if (!item) return null;
+    
+    if (Date.now() > item.expires) {
+      this.cache.delete(key);
+      return null;
+    }
+    
+    return item.data;
+  }
+  
+  set(key, data) {
+    this.cache.set(key, {
+      data,
+      expires: Date.now() + this.ttl
+    });
+  }
+}
+
+const cache = new APICache(300); // 5 minute cache
+
+async function getCachedUserProfile(userId) {
+  const cacheKey = `user_profile_${userId}`;
+  
+  // Check cache first
+  let profile = cache.get(cacheKey);
+  if (profile) {
+    console.log('Cache hit for user profile');
+    return profile;
+  }
+  
+  // Fetch from API
+  profile = await fetchUserProfile(userId);
+  cache.set(cacheKey, profile);
+  
+  return profile;
+}</code></pre>
+                    </div>
+
+                    <h3>4. Batch Requests Efficiently</h3>
+                    <p>When processing multiple items, batch them with appropriate delays:</p>
+
+                    <div class="code-example">
+                        <pre><code>async function processBatch(items, batchSize = 5, delayMs = 1000) {
+  const results = [];
+  
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = items.slice(i, i + batchSize);
+    
+    // Process batch in parallel
+    const batchPromises = batch.map(item => processItem(item));
+    const batchResults = await Promise.allSettled(batchPromises);
+    
+    results.push(...batchResults);
+    
+    // Delay between batches (except for last batch)
+    if (i + batchSize < items.length) {
+      console.log(`Processed batch ${Math.floor(i / batchSize) + 1}, waiting ${delayMs}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+  }
+  
+  return results;
+}</code></pre>
+                    </div>
+                </section>
+
+                <section id="optimization-tips">
+                    <h2>Optimization Tips</h2>
+
+                    <div class="tips-grid">
+                        <div class="tip-card">
+                            <h4>🔄 Use Conditional Requests</h4>
+                            <p>Use <code>If-Modified-Since</code> headers when available to avoid unnecessary data transfer.</p>
+                        </div>
+
+                        <div class="tip-card">
+                            <h4>📊 Monitor Usage Patterns</h4>
+                            <p>Track your API usage patterns to identify optimization opportunities.</p>
+                        </div>
+
+                        <div class="tip-card">
+                            <h4>⏰ Spread Requests Over Time</h4>
+                            <p>Avoid burst patterns by spreading requests evenly across the time window.</p>
+                        </div>
+
+                        <div class="tip-card">
+                            <h4>🎯 Choose Specific Endpoints</h4>
+                            <p>Use the most specific endpoint for your needs rather than fetching extra data.</p>
+                        </div>
+
+                        <div class="tip-card">
+                            <h4>💾 Implement Smart Caching</h4>
+                            <p>Cache responses based on data volatility - user profiles change less than presence data.</p>
+                        </div>
+
+                        <div class="tip-card">
+                            <h4>🚫 Handle Errors Gracefully</h4>
+                            <p>Don't retry immediately on errors - implement proper backoff strategies.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="monitoring">
+                    <h2>Monitoring Your Usage</h2>
+                    <p>Keep track of your API usage to avoid hitting limits:</p>
+
+                    <div class="code-example">
+                        <pre><code>class RateLimitMonitor {
+  constructor() {
+    this.usage = {
+      requests: 0,
+      windowStart: Date.now(),
+      windowDuration: 3600000 // 1 hour
+    };
+  }
+  
+  recordRequest(response) {
+    const now = Date.now();
+    
+    // Reset window if needed
+    if (now - this.usage.windowStart > this.usage.windowDuration) {
+      this.usage.requests = 0;
+      this.usage.windowStart = now;
+    }
+    
+    this.usage.requests++;
+    
+    // Extract from headers if available
+    const remaining = response.headers.get('X-RateLimit-Remaining');
+    const limit = response.headers.get('X-RateLimit-Limit');
+    
+    if (remaining && limit) {
+      const used = parseInt(limit) - parseInt(remaining);
+      console.log(`API Usage: ${used}/${limit} (${((used/limit)*100).toFixed(1)}%)`);
+    }
+  }
+  
+  getUsageStats() {
+    const windowProgress = (Date.now() - this.usage.windowStart) / this.usage.windowDuration;
+    
+    return {
+      requestsThisWindow: this.usage.requests,
+      windowProgress: Math.min(windowProgress, 1),
+      estimatedHourlyRate: this.usage.requests / Math.max(windowProgress, 0.1)
+    };
+  }
+}
+
+const monitor = new RateLimitMonitor();</code></pre>
+                    </div>
+                </section>
+
+                <section id="upgrade-options">
+                    <h2>Need Higher Limits?</h2>
+                    <p>If your application requires higher rate limits, consider these options:</p>
+
+                    <div class="alert alert-info">
+                        <h4>🚀 Enterprise Options</h4>
+                        <ul>
+                            <li><strong>Custom Rate Limits:</strong> Contact us for higher limits based on your use case</li>
+                            <li><strong>Dedicated Infrastructure:</strong> Private API instances for high-volume applications</li>
+                            <li><strong>Priority Support:</strong> Faster response times and dedicated assistance</li>
+                            <li><strong>SLA Guarantees:</strong> Uptime and performance commitments</li>
+                        </ul>
+                        
+                        <p>Contact us at <a href="mailto:enterprise@arrowapi.com">enterprise@arrowapi.com</a> to discuss your requirements.</p>
+                    </div>
+                </section>
+
+                <div class="alert alert-success">
+                    <strong>✅ Quick Checklist for Rate Limit Compliance:</strong>
+                    <ul>
+                        <li>Monitor rate limit headers in every response</li>
+                        <li>Implement exponential backoff for 429 responses</li>
+                        <li>Cache frequently requested data</li>
+                        <li>Batch requests with appropriate delays</li>
+                        <li>Use specific endpoints to avoid over-fetching</li>
+                        <li>Respect the Retry-After header</li>
+                        <li>Log and monitor your usage patterns</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>Arrow API</h4>
+                <p>Comprehensive Roblox API</p>
+            </div>
+            <div class="footer-section">
+                <h4>Links</h4>
+                <a href="/docs">Documentation</a>
+                <a href="/dashboard">Dashboard</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Arrow API. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

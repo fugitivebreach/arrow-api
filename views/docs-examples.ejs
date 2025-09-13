@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Examples - Arrow API Documentation</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-arrow-right"></i>
+                <span>Arrow API</span>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/docs" class="nav-link">Documentation</a>
+                <% if (typeof user !== 'undefined' && user) { %>
+                    <a href="/dashboard" class="nav-link">Dashboard</a>
+                    <a href="/verify" class="nav-link">Verify</a>
+                    <div class="user-menu">
+                        <img src="https://cdn.discordapp.com/avatars/<%= user.discordId %>/<%= user.avatar %>.png" alt="Avatar" class="user-avatar">
+                        <span class="username"><%= user.username %></span>
+                        <a href="/auth/logout" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </a>
+                    </div>
+                <% } else { %>
+                    <a href="/login" class="login-btn">
+                        <i class="fab fa-discord"></i>
+                        Login with Discord
+                    </a>
+                <% } %>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="docs-container">
+            <div class="docs-sidebar">
+                <nav class="docs-nav">
+                    <ul>
+                        <li><a href="/docs">Getting Started</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" onclick="toggleDropdown(this)">ROBLOX APIs</a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/docs/roblox/user-profile">User Profile</a></li>
+                                <li><a href="/docs/roblox/user-games">User Games</a></li>
+                                <li><a href="/docs/roblox/group-membership">Group Membership</a></li>
+                                <li><a href="/docs/roblox/group-extended">Group Extended</a></li>
+                                <li class="dropdown">
+                                    <a href="#" class="dropdown-toggle" onclick="toggleDropdown(this)">Social APIs</a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="/docs/roblox/social/friends">Friends</a></li>
+                                        <li><a href="/docs/roblox/social/followers">Followers</a></li>
+                                        <li><a href="/docs/roblox/social/presence">Presence</a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="/docs/roblox/assets">Asset & Catalog</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="/docs/examples" class="active">Code Examples</a></li>
+                        <li><a href="/docs/responses">Response Format</a></li>
+                        <li><a href="/docs/rate-limits">Rate Limits</a></li>
+                        <li><a href="/health">Health Check</a></li>
+                    </ul>
+                </nav>
+            </div>
+
+            <div class="docs-content">
+                <h1>📝 Code Examples</h1>
+                <p>Comprehensive code examples for integrating with the Arrow API in multiple programming languages.</p>
+
+                <div class="alert alert-info">
+                    <strong>Authentication Required:</strong> All examples assume you have a valid API key. Get yours from the <a href="/dashboard">Dashboard</a>.
+                </div>
+
+                <section id="basic-examples">
+                    <h2>Basic Examples</h2>
+
+                    <h3>Check Group Membership</h3>
+                    <div class="language-tabs">
+                        <button class="tab-button active" onclick="switchLanguage(this, 'curl-basic')">cURL</button>
+                        <button class="tab-button" onclick="switchLanguage(this, 'js-basic')">JavaScript</button>
+                        <button class="tab-button" onclick="switchLanguage(this, 'python-basic')">Python</button>
+                        <button class="tab-button" onclick="switchLanguage(this, 'php-basic')">PHP</button>
+                    </div>
+
+                    <div class="code-example active" id="curl-basic">
+                        <pre><code>curl -X GET "https://arrow-api.up.railway.app/1/1" \
+  -H "api-key: your-api-key-here"</code></pre>
+                    </div>
+
+                    <div class="code-example" id="js-basic">
+                        <pre><code>const axios = require('axios');
+
+async function checkGroupMembership(userId, groupId) {
+  try {
+    const response = await axios.get(`https://arrow-api.up.railway.app/${userId}/${groupId}`, {
+      headers: {
+        'api-key': 'your-api-key-here'
+      }
+    });
+    
+    console.log('Membership status:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error:', error.response?.data || error.message);
+  }
+}
+
+// Usage
+checkGroupMembership(1, 1);</code></pre>
+                    </div>
+
+                    <div class="code-example" id="python-basic">
+                        <pre><code>import requests
+
+def check_group_membership(user_id, group_id):
+    url = f"https://arrow-api.up.railway.app/{user_id}/{group_id}"
+    headers = {
+        'api-key': 'your-api-key-here'
+    }
+    
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        
+        data = response.json()
+        print(f"Membership status: {data}")
+        return data
+    except requests.exceptions.RequestException as e:
+        print(f"Error: {e}")
+        return None
+
+# Usage
+check_group_membership(1, 1)</code></pre>
+                    </div>
+
+                    <div class="code-example" id="php-basic">
+                        <pre><code><?php
+function checkGroupMembership($userId, $groupId) {
+    $url = "https://arrow-api.up.railway.app/{$userId}/{$groupId}";
+    
+    $headers = [
+        'api-key: your-api-key-here'
+    ];
+    
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    if ($httpCode === 200) {
+        $data = json_decode($response, true);
+        echo "Membership status: " . json_encode($data) . "\n";
+        return $data;
+    } else {
+        echo "Error: HTTP {$httpCode}\n";
+        return null;
+    }
+}
+
+// Usage
+checkGroupMembership(1, 1);
+?></code></pre>
+                    </div>
+                </section>
+
+                <section id="user-profile-examples">
+                    <h2>User Profile Examples</h2>
+
+                    <h3>Get User Profile with Avatar</h3>
+                    <div class="language-tabs">
+                        <button class="tab-button active" onclick="switchLanguage(this, 'js-profile')">JavaScript</button>
+                        <button class="tab-button" onclick="switchLanguage(this, 'python-profile')">Python</button>
+                    </div>
+
+                    <div class="code-example active" id="js-profile">
+                        <pre><code>async function getUserWithAvatar(userId) {
+  const baseUrl = 'https://arrow-api.up.railway.app';
+  const headers = { 'api-key': 'your-api-key-here' };
+  
+  try {
+    // Get user profile
+    const profileResponse = await axios.get(`${baseUrl}/user/${userId}/profile`, { headers });
+    const profile = profileResponse.data;
+    
+    // Get headshot image URL (or download as PNG)
+    const headshotUrl = `${baseUrl}/user/${userId}/headshot`;
+    
+    console.log('User Profile:', profile);
+    console.log('Headshot URL:', headshotUrl);
+    
+    return {
+      profile,
+      headshotUrl
+    };
+  } catch (error) {
+    console.error('Error:', error.response?.data || error.message);
+  }
+}
+
+// Usage
+getUserWithAvatar(1);</code></pre>
+                    </div>
+
+                    <div class="code-example" id="python-profile">
+                        <pre><code>import requests
+from io import BytesIO
+
+def get_user_with_avatar(user_id):
+    base_url = "https://arrow-api.up.railway.app"
+    headers = {'api-key': 'your-api-key-here'}
+    
+    try:
+        # Get user profile
+        profile_response = requests.get(f"{base_url}/user/{user_id}/profile", headers=headers)
+        profile_response.raise_for_status()
+        profile = profile_response.json()
+        
+        # Download headshot as PNG
+        headshot_response = requests.get(f"{base_url}/user/{user_id}/headshot", headers=headers)
+        headshot_response.raise_for_status()
+        
+        # Save image
+        with open(f"user_{user_id}_headshot.png", "wb") as f:
+            f.write(headshot_response.content)
+        
+        print(f"User Profile: {profile}")
+        print(f"Headshot saved as user_{user_id}_headshot.png")
+        
+        return profile
+    except requests.exceptions.RequestException as e:
+        print(f"Error: {e}")
+        return None
+
+# Usage
+get_user_with_avatar(1)</code></pre>
+                    </div>
+                </section>
+
+                <section id="batch-examples">
+                    <h2>Batch Processing Examples</h2>
+
+                    <h3>Check Multiple Users in Group</h3>
+                    <div class="language-tabs">
+                        <button class="tab-button active" onclick="switchLanguage(this, 'js-batch')">JavaScript</button>
+                        <button class="tab-button" onclick="switchLanguage(this, 'python-batch')">Python</button>
+                    </div>
+
+                    <div class="code-example active" id="js-batch">
+                        <pre><code>async function checkMultipleUsers(userIds, groupId) {
+  const baseUrl = 'https://arrow-api.up.railway.app';
+  const headers = { 'api-key': 'your-api-key-here' };
+  
+  const results = [];
+  
+  // Process in batches to respect rate limits
+  const batchSize = 5;
+  for (let i = 0; i < userIds.length; i += batchSize) {
+    const batch = userIds.slice(i, i + batchSize);
+    
+    const promises = batch.map(async (userId) => {
+      try {
+        const response = await axios.get(`${baseUrl}/${userId}/${groupId}`, { headers });
+        return { userId, status: 'success', data: response.data };
+      } catch (error) {
+        return { userId, status: 'error', error: error.response?.data || error.message };
+      }
+    });
+    
+    const batchResults = await Promise.all(promises);
+    results.push(...batchResults);
+    
+    // Wait between batches to avoid rate limiting
+    if (i + batchSize < userIds.length) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }
+  
+  return results;
+}
+
+// Usage
+const userIds = [1, 2, 3, 4, 5];
+checkMultipleUsers(userIds, 1).then(results => {
+  console.log('Batch results:', results);
+});</code></pre>
+                    </div>
+
+                    <div class="code-example" id="python-batch">
+                        <pre><code>import requests
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+def check_user_membership(user_id, group_id, headers):
+    """Check single user membership"""
+    try:
+        response = requests.get(f"https://arrow-api.up.railway.app/{user_id}/{group_id}", headers=headers)
+        response.raise_for_status()
+        return {'user_id': user_id, 'status': 'success', 'data': response.json()}
+    except requests.exceptions.RequestException as e:
+        return {'user_id': user_id, 'status': 'error', 'error': str(e)}
+
+def check_multiple_users(user_ids, group_id, max_workers=5):
+    """Check multiple users with threading and rate limiting"""
+    headers = {'api-key': 'your-api-key-here'}
+    results = []
+    
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # Submit all tasks
+        future_to_user = {
+            executor.submit(check_user_membership, user_id, group_id, headers): user_id 
+            for user_id in user_ids
+        }
+        
+        # Process completed tasks
+        for future in as_completed(future_to_user):
+            result = future.result()
+            results.append(result)
+            
+            # Small delay to respect rate limits
+            time.sleep(0.2)
+    
+    return results
+
+# Usage
+user_ids = [1, 2, 3, 4, 5]
+results = check_multiple_users(user_ids, 1)
+print(f"Batch results: {results}")</code></pre>
+                    </div>
+                </section>
+
+                <section id="error-handling">
+                    <h2>Error Handling Best Practices</h2>
+
+                    <div class="language-tabs">
+                        <button class="tab-button active" onclick="switchLanguage(this, 'js-error')">JavaScript</button>
+                        <button class="tab-button" onclick="switchLanguage(this, 'python-error')">Python</button>
+                    </div>
+
+                    <div class="code-example active" id="js-error">
+                        <pre><code>class ArrowAPIClient {
+  constructor(apiKey) {
+    this.apiKey = apiKey;
+    this.baseUrl = 'https://arrow-api.up.railway.app';
+    this.headers = { 'api-key': apiKey };
+  }
+  
+  async makeRequest(endpoint, retries = 3) {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const response = await axios.get(`${this.baseUrl}${endpoint}`, {
+          headers: this.headers,
+          timeout: 10000 // 10 second timeout
+        });
+        
+        return response.data;
+      } catch (error) {
+        const status = error.response?.status;
+        
+        if (status === 401) {
+          throw new Error('Invalid API key');
+        } else if (status === 429) {
+          // Rate limited - wait and retry
+          const waitTime = Math.pow(2, attempt) * 1000; // Exponential backoff
+          console.log(`Rate limited. Waiting ${waitTime}ms before retry ${attempt}/${retries}`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+          
+          if (attempt === retries) {
+            throw new Error('Rate limit exceeded after retries');
+          }
+        } else if (status >= 500) {
+          // Server error - retry
+          if (attempt === retries) {
+            throw new Error(`Server error: ${error.response?.data?.message || 'Unknown error'}`);
+          }
+        } else {
+          // Client error - don't retry
+          throw new Error(error.response?.data?.message || error.message);
+        }
+      }
+    }
+  }
+  
+  async checkGroupMembership(userId, groupId) {
+    return this.makeRequest(`/${userId}/${groupId}`);
+  }
+  
+  async getUserProfile(userId) {
+    return this.makeRequest(`/user/${userId}/profile`);
+  }
+}
+
+// Usage
+const client = new ArrowAPIClient('your-api-key-here');
+
+client.checkGroupMembership(1, 1)
+  .then(data => console.log('Success:', data))
+  .catch(error => console.error('Error:', error.message));</code></pre>
+                    </div>
+
+                    <div class="code-example" id="python-error">
+                        <pre><code>import requests
+import time
+from typing import Optional, Dict, Any
+
+class ArrowAPIClient:
+    def __init__(self, api_key: str):
+        self.api_key = api_key
+        self.base_url = "https://arrow-api.up.railway.app"
+        self.headers = {"api-key": api_key}
+    
+    def make_request(self, endpoint: str, retries: int = 3) -> Optional[Dict[Any, Any]]:
+        """Make API request with error handling and retries"""
+        
+        for attempt in range(1, retries + 1):
+            try:
+                response = requests.get(
+                    f"{self.base_url}{endpoint}",
+                    headers=self.headers,
+                    timeout=10
+                )
+                
+                if response.status_code == 200:
+                    return response.json()
+                elif response.status_code == 401:
+                    raise ValueError("Invalid API key")
+                elif response.status_code == 429:
+                    # Rate limited - exponential backoff
+                    wait_time = (2 ** attempt)
+                    print(f"Rate limited. Waiting {wait_time}s before retry {attempt}/{retries}")
+                    time.sleep(wait_time)
+                    
+                    if attempt == retries:
+                        raise Exception("Rate limit exceeded after retries")
+                elif response.status_code >= 500:
+                    # Server error - retry
+                    if attempt == retries:
+                        raise Exception(f"Server error: {response.text}")
+                else:
+                    # Client error - don't retry
+                    raise Exception(f"API error: {response.text}")
+                    
+            except requests.exceptions.RequestException as e:
+                if attempt == retries:
+                    raise Exception(f"Network error: {str(e)}")
+                time.sleep(1)
+        
+        return None
+    
+    def check_group_membership(self, user_id: int, group_id: int) -> Optional[Dict[Any, Any]]:
+        """Check if user is in group"""
+        return self.make_request(f"/{user_id}/{group_id}")
+    
+    def get_user_profile(self, user_id: int) -> Optional[Dict[Any, Any]]:
+        """Get user profile"""
+        return self.make_request(f"/user/{user_id}/profile")
+
+# Usage
+client = ArrowAPIClient("your-api-key-here")
+
+try:
+    result = client.check_group_membership(1, 1)
+    print(f"Success: {result}")
+except Exception as e:
+    print(f"Error: {e}")</code></pre>
+                    </div>
+                </section>
+
+                <section id="sdk-examples">
+                    <h2>SDK-Style Wrapper Example</h2>
+                    <p>Here's a complete SDK-style wrapper you can use in your projects:</p>
+
+                    <div class="language-tabs">
+                        <button class="tab-button active" onclick="switchLanguage(this, 'js-sdk')">JavaScript SDK</button>
+                        <button class="tab-button" onclick="switchLanguage(this, 'python-sdk')">Python SDK</button>
+                    </div>
+
+                    <div class="code-example active" id="js-sdk">
+                        <pre><code>// arrow-api-sdk.js
+class ArrowAPI {
+  constructor(apiKey) {
+    this.apiKey = apiKey;
+    this.baseUrl = 'https://arrow-api.up.railway.app';
+  }
+  
+  // Group APIs
+  async checkGroupMembership(userId, groupId) {
+    return this._request(`/${userId}/${groupId}`);
+  }
+  
+  async getGroupInfo(groupId) {
+    return this._request(`/group/${groupId}/info`);
+  }
+  
+  // User APIs
+  async getUserProfile(userId) {
+    return this._request(`/user/${userId}/profile`);
+  }
+  
+  async getUserHeadshot(userId, size = '150x150') {
+    const response = await fetch(`${this.baseUrl}/user/${userId}/headshot?size=${size}`, {
+      headers: { 'api-key': this.apiKey }
+    });
+    return response.blob(); // Returns image as blob
+  }
+  
+  async getUserBadges(userId) {
+    return this._request(`/user/${userId}/badges`);
+  }
+  
+  // Social APIs
+  async getUserFriends(userId) {
+    return this._request(`/user/${userId}/friends`);
+  }
+  
+  async getUserPresence(userId) {
+    return this._request(`/user/${userId}/presence`);
+  }
+  
+  // Private helper method
+  async _request(endpoint) {
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      headers: {
+        'api-key': this.apiKey,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    }
+    
+    return response.json();
+  }
+}
+
+// Usage
+const api = new ArrowAPI('your-api-key-here');
+
+// Check membership
+api.checkGroupMembership(1, 1)
+  .then(result => console.log('Membership:', result));
+
+// Get user profile and headshot
+Promise.all([
+  api.getUserProfile(1),
+  api.getUserHeadshot(1)
+]).then(([profile, headshot]) => {
+  console.log('Profile:', profile);
+  console.log('Headshot blob:', headshot);
+});</code></pre>
+                    </div>
+
+                    <div class="code-example" id="python-sdk">
+                        <pre><code># arrow_api_sdk.py
+import requests
+from typing import Optional, Dict, Any, List
+
+class ArrowAPI:
+    def __init__(self, api_key: str):
+        self.api_key = api_key
+        self.base_url = "https://arrow-api.up.railway.app"
+        self.headers = {"api-key": api_key}
+    
+    # Group APIs
+    def check_group_membership(self, user_id: int, group_id: int) -> Dict[str, Any]:
+        """Check if user is member of group"""
+        return self._request(f"/{user_id}/{group_id}")
+    
+    def get_group_info(self, group_id: int) -> Dict[str, Any]:
+        """Get group information"""
+        return self._request(f"/group/{group_id}/info")
+    
+    # User APIs
+    def get_user_profile(self, user_id: int) -> Dict[str, Any]:
+        """Get user profile data"""
+        return self._request(f"/user/{user_id}/profile")
+    
+    def get_user_headshot(self, user_id: int, size: str = "150x150") -> bytes:
+        """Get user headshot as PNG bytes"""
+        response = requests.get(
+            f"{self.base_url}/user/{user_id}/headshot",
+            headers=self.headers,
+            params={"size": size}
+        )
+        response.raise_for_status()
+        return response.content
+    
+    def get_user_badges(self, user_id: int) -> List[Dict[str, Any]]:
+        """Get user badges"""
+        return self._request(f"/user/{user_id}/badges")
+    
+    # Social APIs
+    def get_user_friends(self, user_id: int) -> List[Dict[str, Any]]:
+        """Get user friends list"""
+        return self._request(f"/user/{user_id}/friends")
+    
+    def get_user_presence(self, user_id: int) -> Dict[str, Any]:
+        """Get user presence/activity"""
+        return self._request(f"/user/{user_id}/presence")
+    
+    # Private helper method
+    def _request(self, endpoint: str) -> Dict[str, Any]:
+        """Make authenticated request to API"""
+        response = requests.get(f"{self.base_url}{endpoint}", headers=self.headers)
+        response.raise_for_status()
+        return response.json()
+
+# Usage
+api = ArrowAPI("your-api-key-here")
+
+# Check membership
+membership = api.check_group_membership(1, 1)
+print(f"Membership: {membership}")
+
+# Get user data
+profile = api.get_user_profile(1)
+headshot_bytes = api.get_user_headshot(1)
+
+# Save headshot
+with open("user_headshot.png", "wb") as f:
+    f.write(headshot_bytes)
+
+print(f"Profile: {profile}")
+print("Headshot saved as user_headshot.png")</code></pre>
+                    </div>
+                </section>
+
+                <div class="alert alert-success">
+                    <strong>💡 Pro Tips:</strong>
+                    <ul>
+                        <li>Always implement proper error handling and retry logic</li>
+                        <li>Respect rate limits by adding delays between requests</li>
+                        <li>Cache responses when possible to reduce API calls</li>
+                        <li>Use environment variables for API keys, never hardcode them</li>
+                        <li>Implement exponential backoff for rate limit handling</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>Arrow API</h4>
+                <p>Comprehensive Roblox API</p>
+            </div>
+            <div class="footer-section">
+                <h4>Links</h4>
+                <a href="/docs">Documentation</a>
+                <a href="/dashboard">Dashboard</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Arrow API. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

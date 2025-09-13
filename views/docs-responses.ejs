@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Response Format - Arrow API Documentation</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-arrow-right"></i>
+                <span>Arrow API</span>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/docs" class="nav-link">Documentation</a>
+                <% if (typeof user !== 'undefined' && user) { %>
+                    <a href="/dashboard" class="nav-link">Dashboard</a>
+                    <a href="/verify" class="nav-link">Verify</a>
+                    <div class="user-menu">
+                        <img src="https://cdn.discordapp.com/avatars/<%= user.discordId %>/<%= user.avatar %>.png" alt="Avatar" class="user-avatar">
+                        <span class="username"><%= user.username %></span>
+                        <a href="/auth/logout" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </a>
+                    </div>
+                <% } else { %>
+                    <a href="/login" class="login-btn">
+                        <i class="fab fa-discord"></i>
+                        Login with Discord
+                    </a>
+                <% } %>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="docs-container">
+            <div class="docs-sidebar">
+                <nav class="docs-nav">
+                    <ul>
+                        <li><a href="/docs">Getting Started</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" onclick="toggleDropdown(this)">ROBLOX APIs</a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/docs/roblox/user-profile">User Profile</a></li>
+                                <li><a href="/docs/roblox/user-games">User Games</a></li>
+                                <li><a href="/docs/roblox/group-membership">Group Membership</a></li>
+                                <li><a href="/docs/roblox/group-extended">Group Extended</a></li>
+                                <li class="dropdown">
+                                    <a href="#" class="dropdown-toggle" onclick="toggleDropdown(this)">Social APIs</a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="/docs/roblox/social/friends">Friends</a></li>
+                                        <li><a href="/docs/roblox/social/followers">Followers</a></li>
+                                        <li><a href="/docs/roblox/social/presence">Presence</a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="/docs/roblox/assets">Asset & Catalog</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="/docs/examples">Code Examples</a></li>
+                        <li><a href="/docs/responses" class="active">Response Format</a></li>
+                        <li><a href="/docs/rate-limits">Rate Limits</a></li>
+                        <li><a href="/health">Health Check</a></li>
+                    </ul>
+                </nav>
+            </div>
+
+            <div class="docs-content">
+                <h1>📋 Response Format</h1>
+                <p>Understanding the structure and format of Arrow API responses, including success responses, error handling, and status codes.</p>
+
+                <section id="response-structure">
+                    <h2>Response Structure</h2>
+                    <p>All Arrow API responses follow consistent patterns for both success and error cases.</p>
+
+                    <h3>Success Responses</h3>
+                    <p>Successful API calls return JSON data with the requested information. The structure varies by endpoint but follows these patterns:</p>
+
+                    <div class="response-example">
+                        <h4>Group Membership Response</h4>
+                        <pre><code>{
+  "inGroup": true,
+  "rank": {
+    "id": 100,
+    "name": "Member",
+    "memberCount": 1234
+  },
+  "user": {
+    "id": 1,
+    "username": "Roblox",
+    "displayName": "Roblox"
+  },
+  "group": {
+    "id": 1,
+    "name": "Roblox",
+    "memberCount": 50000
+  }
+}</code></pre>
+                    </div>
+
+                    <div class="response-example">
+                        <h4>User Profile Response</h4>
+                        <pre><code>{
+  "id": 1,
+  "username": "Roblox",
+  "displayName": "Roblox",
+  "description": "The official Roblox account",
+  "created": "2006-02-27T21:06:40.3Z",
+  "isBanned": false,
+  "externalAppDisplayName": null,
+  "hasVerifiedBadge": true
+}</code></pre>
+                    </div>
+
+                    <div class="response-example">
+                        <h4>User Friends Response</h4>
+                        <pre><code>{
+  "data": [
+    {
+      "id": 2,
+      "username": "john_doe",
+      "displayName": "John Doe",
+      "isOnline": true,
+      "isDeleted": false,
+      "friendFrequentScore": 0,
+      "friendFrequentRank": 0
+    }
+  ]
+}</code></pre>
+                    </div>
+
+                    <h3>Binary Responses</h3>
+                    <p>Some endpoints return binary data instead of JSON:</p>
+
+                    <div class="response-example">
+                        <h4>User Headshot (PNG Image)</h4>
+                        <pre><code>Content-Type: image/png
+Content-Length: 12345
+
+[Binary PNG image data]</code></pre>
+                    </div>
+                </section>
+
+                <section id="error-responses">
+                    <h2>Error Responses</h2>
+                    <p>When an error occurs, the API returns a JSON object with error details and appropriate HTTP status codes.</p>
+
+                    <h3>Error Response Structure</h3>
+                    <pre><code>{
+  "error": "Error message description",
+  "code": "ERROR_CODE",
+  "details": {
+    // Additional error context (optional)
+  }
+}</code></pre>
+
+                    <h3>Common Error Examples</h3>
+
+                    <div class="error-example">
+                        <h4>401 Unauthorized - Invalid API Key</h4>
+                        <pre><code>{
+  "error": "Invalid API key",
+  "code": "INVALID_API_KEY"
+}</code></pre>
+                    </div>
+
+                    <div class="error-example">
+                        <h4>404 Not Found - User Not Found</h4>
+                        <pre><code>{
+  "error": "User not found",
+  "code": "USER_NOT_FOUND",
+  "details": {
+    "userId": 999999999
+  }
+}</code></pre>
+                    </div>
+
+                    <div class="error-example">
+                        <h4>429 Too Many Requests - Rate Limited</h4>
+                        <pre><code>{
+  "error": "Rate limit exceeded",
+  "code": "RATE_LIMIT_EXCEEDED",
+  "details": {
+    "retryAfter": 60,
+    "limit": 100,
+    "window": "1h"
+  }
+}</code></pre>
+                    </div>
+
+                    <div class="error-example">
+                        <h4>500 Internal Server Error</h4>
+                        <pre><code>{
+  "error": "Internal server error",
+  "code": "INTERNAL_ERROR",
+  "details": {
+    "requestId": "abc123-def456-ghi789"
+  }
+}</code></pre>
+                    </div>
+                </section>
+
+                <section id="status-codes">
+                    <h2>HTTP Status Codes</h2>
+                    <p>The Arrow API uses standard HTTP status codes to indicate the success or failure of requests.</p>
+
+                    <div class="status-codes-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Status Code</th>
+                                    <th>Meaning</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="success">
+                                    <td><code>200</code></td>
+                                    <td>OK</td>
+                                    <td>Request successful, data returned</td>
+                                </tr>
+                                <tr class="client-error">
+                                    <td><code>400</code></td>
+                                    <td>Bad Request</td>
+                                    <td>Invalid request parameters or format</td>
+                                </tr>
+                                <tr class="client-error">
+                                    <td><code>401</code></td>
+                                    <td>Unauthorized</td>
+                                    <td>Missing or invalid API key</td>
+                                </tr>
+                                <tr class="client-error">
+                                    <td><code>403</code></td>
+                                    <td>Forbidden</td>
+                                    <td>API key lacks required permissions</td>
+                                </tr>
+                                <tr class="client-error">
+                                    <td><code>404</code></td>
+                                    <td>Not Found</td>
+                                    <td>Requested resource doesn't exist</td>
+                                </tr>
+                                <tr class="client-error">
+                                    <td><code>429</code></td>
+                                    <td>Too Many Requests</td>
+                                    <td>Rate limit exceeded</td>
+                                </tr>
+                                <tr class="server-error">
+                                    <td><code>500</code></td>
+                                    <td>Internal Server Error</td>
+                                    <td>Server-side error occurred</td>
+                                </tr>
+                                <tr class="server-error">
+                                    <td><code>502</code></td>
+                                    <td>Bad Gateway</td>
+                                    <td>Upstream service unavailable</td>
+                                </tr>
+                                <tr class="server-error">
+                                    <td><code>503</code></td>
+                                    <td>Service Unavailable</td>
+                                    <td>API temporarily unavailable</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="data-types">
+                    <h2>Data Types</h2>
+                    <p>Understanding the data types used in API responses:</p>
+
+                    <div class="data-types-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                    <th>Example</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>string</code></td>
+                                    <td>Text data</td>
+                                    <td><code>"Roblox"</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>number</code></td>
+                                    <td>Numeric data (integer or float)</td>
+                                    <td><code>123</code>, <code>45.67</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>boolean</code></td>
+                                    <td>True or false value</td>
+                                    <td><code>true</code>, <code>false</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>array</code></td>
+                                    <td>List of items</td>
+                                    <td><code>[1, 2, 3]</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>object</code></td>
+                                    <td>Nested data structure</td>
+                                    <td><code>{"id": 1, "name": "Test"}</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>null</code></td>
+                                    <td>No value/empty</td>
+                                    <td><code>null</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>datetime</code></td>
+                                    <td>ISO 8601 timestamp</td>
+                                    <td><code>"2024-01-15T10:30:00.000Z"</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="pagination">
+                    <h2>Pagination</h2>
+                    <p>Some endpoints return paginated results for large datasets:</p>
+
+                    <div class="response-example">
+                        <h4>Paginated Response Structure</h4>
+                        <pre><code>{
+  "data": [
+    // Array of items
+  ],
+  "nextPageCursor": "abc123def456",
+  "previousPageCursor": null,
+  "hasNextPage": true,
+  "hasPreviousPage": false
+}</code></pre>
+                    </div>
+
+                    <h3>Pagination Parameters</h3>
+                    <ul>
+                        <li><code>cursor</code> - Page cursor for navigation</li>
+                        <li><code>limit</code> - Number of items per page (default: 10, max: 100)</li>
+                        <li><code>sortOrder</code> - Sort direction (Asc/Desc)</li>
+                    </ul>
+                </section>
+
+                <section id="response-headers">
+                    <h2>Response Headers</h2>
+                    <p>Important headers included in API responses:</p>
+
+                    <div class="headers-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Header</th>
+                                    <th>Description</th>
+                                    <th>Example</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>Content-Type</code></td>
+                                    <td>Response content type</td>
+                                    <td><code>application/json</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>X-RateLimit-Limit</code></td>
+                                    <td>Rate limit per window</td>
+                                    <td><code>100</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>X-RateLimit-Remaining</code></td>
+                                    <td>Remaining requests in window</td>
+                                    <td><code>95</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>X-RateLimit-Reset</code></td>
+                                    <td>Rate limit reset time (Unix timestamp)</td>
+                                    <td><code>1642680000</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>Cache-Control</code></td>
+                                    <td>Caching instructions</td>
+                                    <td><code>public, max-age=300</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>X-Request-ID</code></td>
+                                    <td>Unique request identifier</td>
+                                    <td><code>req_abc123def456</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="best-practices">
+                    <h2>Response Handling Best Practices</h2>
+
+                    <div class="alert alert-info">
+                        <h4>💡 Best Practices</h4>
+                        <ul>
+                            <li><strong>Always check HTTP status codes</strong> before processing response data</li>
+                            <li><strong>Handle null values gracefully</strong> - some fields may be null or missing</li>
+                            <li><strong>Implement proper error handling</strong> for all possible error responses</li>
+                            <li><strong>Use response headers</strong> for rate limiting and caching information</li>
+                            <li><strong>Validate data types</strong> before using response data in your application</li>
+                            <li><strong>Cache responses</strong> when appropriate to reduce API calls</li>
+                            <li><strong>Log request IDs</strong> for debugging and support purposes</li>
+                        </ul>
+                    </div>
+
+                    <h3>Example Error Handling</h3>
+                    <div class="language-tabs">
+                        <button class="tab-button active" onclick="switchLanguage(this, 'js-handling')">JavaScript</button>
+                        <button class="tab-button" onclick="switchLanguage(this, 'python-handling')">Python</button>
+                    </div>
+
+                    <div class="code-example active" id="js-handling">
+                        <pre><code>async function handleApiResponse(response) {
+  // Check if response is ok
+  if (!response.ok) {
+    const errorData = await response.json();
+    
+    switch (response.status) {
+      case 401:
+        throw new Error('Invalid API key - please check your credentials');
+      case 404:
+        throw new Error(`Resource not found: ${errorData.error}`);
+      case 429:
+        const retryAfter = errorData.details?.retryAfter || 60;
+        throw new Error(`Rate limited - retry after ${retryAfter} seconds`);
+      case 500:
+        const requestId = errorData.details?.requestId;
+        throw new Error(`Server error (ID: ${requestId}) - please try again later`);
+      default:
+        throw new Error(`API error: ${errorData.error || 'Unknown error'}`);
+    }
+  }
+  
+  // Parse successful response
+  const data = await response.json();
+  
+  // Validate expected fields exist
+  if (data.id === undefined) {
+    console.warn('Response missing expected ID field');
+  }
+  
+  return data;
+}</code></pre>
+                    </div>
+
+                    <div class="code-example" id="python-handling">
+                        <pre><code>def handle_api_response(response):
+    """Handle API response with proper error checking"""
+    
+    if response.status_code == 200:
+        data = response.json()
+        
+        # Validate expected fields
+        if 'id' not in data:
+            print("Warning: Response missing expected 'id' field")
+        
+        return data
+    
+    # Handle errors
+    try:
+        error_data = response.json()
+        error_msg = error_data.get('error', 'Unknown error')
+        error_code = error_data.get('code', 'UNKNOWN')
+    except:
+        error_msg = f"HTTP {response.status_code}"
+        error_code = 'HTTP_ERROR'
+    
+    if response.status_code == 401:
+        raise ValueError(f"Invalid API key: {error_msg}")
+    elif response.status_code == 404:
+        raise ValueError(f"Resource not found: {error_msg}")
+    elif response.status_code == 429:
+        retry_after = error_data.get('details', {}).get('retryAfter', 60)
+        raise Exception(f"Rate limited - retry after {retry_after} seconds")
+    elif response.status_code >= 500:
+        request_id = error_data.get('details', {}).get('requestId', 'unknown')
+        raise Exception(f"Server error (ID: {request_id}): {error_msg}")
+    else:
+        raise Exception(f"API error ({error_code}): {error_msg}")</code></pre>
+                    </div>
+                </section>
+
+                <div class="alert alert-warning">
+                    <strong>⚠️ Important Notes:</strong>
+                    <ul>
+                        <li>Response formats may evolve - always handle unexpected fields gracefully</li>
+                        <li>Some endpoints may return different structures based on parameters</li>
+                        <li>Binary responses (like images) don't follow JSON format</li>
+                        <li>Rate limit headers are crucial for avoiding 429 errors</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>Arrow API</h4>
+                <p>Comprehensive Roblox API</p>
+            </div>
+            <div class="footer-section">
+                <h4>Links</h4>
+                <a href="/docs">Documentation</a>
+                <a href="/dashboard">Dashboard</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Arrow API. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>
