@@ -471,6 +471,12 @@ async function joinGroupWithCookie(groupId, cookie) {
                     if (data && data.errors && data.errors[0]) {
                         const errorCode = data.errors[0].code;
                         switch (errorCode) {
+                            case 0: // Challenge required
+                                return { 
+                                    success: false, 
+                                    error: 'Roblox security challenge required. Please manually add the bot account to your group.',
+                                    requiresManualJoin: true
+                                };
                             case 1: // InsufficientPermissions
                                 return { success: false, error: 'Bot account does not have permission to join this group' };
                             case 2: // AlreadyInGroup
@@ -480,7 +486,15 @@ async function joinGroupWithCookie(groupId, cookie) {
                             case 18: // GroupJoinRequiresApproval
                                 return { success: false, error: 'This group requires approval to join. Please manually add the bot account or make the group public.' };
                             default:
-                                return { success: false, error: `Group join denied: ${data.errors[0].message || 'Unknown reason'}` };
+                                const message = data.errors[0].message || 'Unknown reason';
+                                if (message.toLowerCase().includes('challenge')) {
+                                    return { 
+                                        success: false, 
+                                        error: 'Roblox security challenge required. Please manually add the bot account to your group.',
+                                        requiresManualJoin: true
+                                    };
+                                }
+                                return { success: false, error: `Group join denied: ${message}` };
                         }
                     }
                     return { success: false, error: 'Access denied - group may be private or require approval' };
@@ -865,13 +879,19 @@ client.on('interactionCreate', async interaction => {
             // Join the group
             const joinResult = await joinGroupWithCookie(groupId, cookie);
             if (!joinResult.success) {
+                let description = `**Error:** ${joinResult.error}\n\n**Bot Account:** ${botUser.name} (${botUser.id})`;
+                
+                if (joinResult.requiresManualJoin) {
+                    description += `\n\n**Manual Setup Instructions:**\n1. Go to your Roblox group: https://www.roblox.com/groups/${groupId}\n2. Invite the bot account **${botUser.name}** to your group\n3. Once added, run \`/setup ${groupId}\` again to complete the setup`;
+                }
+                
                 const embed = new EmbedBuilder()
                     .setAuthor({ 
                         name: interaction.user.username, 
                         iconURL: interaction.user.displayAvatarURL() 
                     })
-                    .setTitle('Setup Failed')
-                    .setDescription(`**Error:** ${joinResult.error}\n\n**Bot Account:** ${botUser.name} (${botUser.id})`)
+                    .setTitle('Manual Setup Required')
+                    .setDescription(description)
                     .setColor('#FFFFFF');
                 
                 return interaction.reply({ embeds: [embed], ephemeral: true });
