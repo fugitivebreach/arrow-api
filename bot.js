@@ -1286,20 +1286,7 @@ client.on('interactionCreate', async interaction => {
 
     if (interaction.customId.startsWith('verify_check_')) {
         const robloxUserId = interaction.customId.replace('verify_check_', '');
-        const verification = serverVerifications.get(interaction.guild.id);
-        
-        if (!verification || verification.userId !== interaction.user.id || !verification.awaitingCheck) {
-            const embed = new EmbedBuilder()
-                .setAuthor({ 
-                    name: interaction.user.username, 
-                    iconURL: interaction.user.displayAvatarURL() 
-                })
-                .setTitle('Verification Failed')
-                .setDescription('Verification session expired or invalid. Please run `/verify` again.')
-                .setColor('#FFFFFF');
-            
-            return interaction.reply({ embeds: [embed], ephemeral: true });
-        }
+        const verification = await getServerVerification(interaction.guild.id);
         
         try {
             // Get user's description
