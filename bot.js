@@ -1388,7 +1388,7 @@ client.on('interactionCreate', async interaction => {
     
     if (interaction.customId === 'roblox_verification') {
         const username = interaction.fields.getTextInputValue('roblox_username');
-        const verification = serverVerifications.get(interaction.guild.id);
+        const verification = await getServerVerification(interaction.guild.id);
         
         if (!verification || verification.userId !== interaction.user.id) {
             const embed = new EmbedBuilder()
