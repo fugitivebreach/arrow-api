@@ -440,6 +440,13 @@ async function joinGroupWithCookie(groupId, cookie) {
             if (csrfError.response && csrfError.response.status === 403 && csrfError.response.headers['x-csrf-token']) {
                 csrfToken = csrfError.response.headers['x-csrf-token'];
             } else {
+                // If it's not a CSRF error, check if it's already a member or other specific error
+                if (csrfError.response && csrfError.response.data && csrfError.response.data.errors) {
+                    const error = csrfError.response.data.errors[0];
+                    if (error.code === 2) { // Already in group
+                        return { success: true, groupName: groupResponse.data.name, alreadyMember: true };
+                    }
+                }
                 throw csrfError;
             }
         }
@@ -457,6 +464,8 @@ async function joinGroupWithCookie(groupId, cookie) {
         return { success: true, groupName: groupResponse.data.name };
     } catch (error) {
         console.error('Error joining group:', error);
+        console.error('Response data:', error.response?.data);
+        console.error('Response status:', error.response?.status);
         
         if (error.response) {
             const status = error.response.status;
