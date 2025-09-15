@@ -377,14 +377,79 @@ async function joinGroupWithCookie(groupId, cookie) {
         });
         
         if (!groupResponse.data) {
-            throw new Error('Group not found');
+            return { success: false, error: 'Group not found' };
         }
         
-        // Join the group
+        // Check if group is public (can be joined)
+        if (!groupResponse.data.publicEntryAllowed) {
+            return { 
+                success: false, 
+                error: `The group "${groupResponse.data.name}" is private and requires approval to join. Please make the group public or manually add the bot account.`,
+                groupName: groupResponse.data.name
+            };
+        }
+        
+        // Get current user info to check if already in group
+        const userResponse = await axios.get('https://users.roblox.com/v1/users/authenticated', {
+            headers: {
+                'Cookie': `.ROBLOSECURITY=${cookie}`
+            },
+            timeout: 10000
+        });
+        
+        if (!userResponse.data || !userResponse.data.id) {
+            return { success: false, error: 'Invalid bot account cookie' };
+        }
+        
+        const botUserId = userResponse.data.id;
+        
+        // Check if bot is already in the group
+        try {
+            const membershipResponse = await axios.get(`https://groups.roblox.com/v1/users/${botUserId}/groups/roles`, {
+                headers: {
+                    'Cookie': `.ROBLOSECURITY=${cookie}`
+                },
+                timeout: 10000
+            });
+            
+            if (membershipResponse.data && membershipResponse.data.data) {
+                const isAlreadyMember = membershipResponse.data.data.some(group => group.group.id === groupId);
+                if (isAlreadyMember) {
+                    return { 
+                        success: true, 
+                        groupName: groupResponse.data.name,
+                        alreadyMember: true
+                    };
+                }
+            }
+        } catch (membershipError) {
+            console.log('Could not check membership status, proceeding with join attempt');
+        }
+        
+        // Get CSRF token first
+        let csrfToken = null;
+        try {
+            await axios.post(`https://groups.roblox.com/v1/groups/${groupId}/users`, {}, {
+                headers: {
+                    'Cookie': `.ROBLOSECURITY=${cookie}`,
+                    'Content-Type': 'application/json'
+                },
+                timeout: 10000
+            });
+        } catch (csrfError) {
+            if (csrfError.response && csrfError.response.status === 403 && csrfError.response.headers['x-csrf-token']) {
+                csrfToken = csrfError.response.headers['x-csrf-token'];
+            } else {
+                throw csrfError;
+            }
+        }
+        
+        // Join the group with CSRF token
         const joinResponse = await axios.post(`https://groups.roblox.com/v1/groups/${groupId}/users`, {}, {
             headers: {
                 'Cookie': `.ROBLOSECURITY=${cookie}`,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
             },
             timeout: 10000
         });
@@ -392,7 +457,43 @@ async function joinGroupWithCookie(groupId, cookie) {
         return { success: true, groupName: groupResponse.data.name };
     } catch (error) {
         console.error('Error joining group:', error);
-        return { success: false, error: error.message };
+        
+        if (error.response) {
+            const status = error.response.status;
+            const data = error.response.data;
+            
+            switch (status) {
+                case 400:
+                    return { success: false, error: 'Invalid group ID or request format' };
+                case 401:
+                    return { success: false, error: 'Bot account authentication failed - invalid cookie' };
+                case 403:
+                    if (data && data.errors && data.errors[0]) {
+                        const errorCode = data.errors[0].code;
+                        switch (errorCode) {
+                            case 1: // InsufficientPermissions
+                                return { success: false, error: 'Bot account does not have permission to join this group' };
+                            case 2: // AlreadyInGroup
+                                return { success: true, groupName: 'Unknown Group', alreadyMember: true };
+                            case 3: // GroupFull
+                                return { success: false, error: 'The group is full and cannot accept new members' };
+                            case 18: // GroupJoinRequiresApproval
+                                return { success: false, error: 'This group requires approval to join. Please manually add the bot account or make the group public.' };
+                            default:
+                                return { success: false, error: `Group join denied: ${data.errors[0].message || 'Unknown reason'}` };
+                        }
+                    }
+                    return { success: false, error: 'Access denied - group may be private or require approval' };
+                case 404:
+                    return { success: false, error: 'Group not found' };
+                case 429:
+                    return { success: false, error: 'Rate limited - please try again later' };
+                default:
+                    return { success: false, error: `HTTP ${status}: ${data?.errors?.[0]?.message || 'Unknown error'}` };
+            }
+        }
+        
+        return { success: false, error: error.message || 'Unknown error occurred' };
     }
 }
 
@@ -764,7 +865,16 @@ client.on('interactionCreate', async interaction => {
             // Join the group
             const joinResult = await joinGroupWithCookie(groupId, cookie);
             if (!joinResult.success) {
-                throw new Error(joinResult.error);
+                const embed = new EmbedBuilder()
+                    .setAuthor({ 
+                        name: interaction.user.username, 
+                        iconURL: interaction.user.displayAvatarURL() 
+                    })
+                    .setTitle('Setup Failed')
+                    .setDescription(`**Error:** ${joinResult.error}\n\n**Bot Account:** ${botUser.name} (${botUser.id})`)
+                    .setColor('#FFFFFF');
+                
+                return interaction.reply({ embeds: [embed], ephemeral: true });
             }
             
             // Store setup info
@@ -775,13 +885,20 @@ client.on('interactionCreate', async interaction => {
                 cookie: cookie
             });
             
+            let description;
+            if (joinResult.alreadyMember) {
+                description = `The bot account **${botUser.name} (${botUser.id})** was already a member of **${joinResult.groupName} (${groupId})**. Setup completed successfully!`;
+            } else {
+                description = `Successfully joined **${joinResult.groupName} (${groupId})** with the bot account **${botUser.name} (${botUser.id})**`;
+            }
+            
             const embed = new EmbedBuilder()
                 .setAuthor({ 
                     name: interaction.user.username, 
                     iconURL: interaction.user.displayAvatarURL() 
                 })
                 .setTitle('Setup Successful')
-                .setDescription(`Successfully joined **${joinResult.groupName} (${groupId})**. I've joined with the account **${botUser.name} (${botUser.id})**`)
+                .setDescription(description)
                 .setColor('#FFFFFF');
             
             return interaction.reply({ embeds: [embed] });
