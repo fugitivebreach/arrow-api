@@ -318,8 +318,23 @@ async function getRobloxUserDescription(userId) {
 async function findAvailableCookie() {
     for (const cookie of ROBLOX_COOKIES) {
         try {
+            // First get the current user's ID from the cookie
+            const userResponse = await axios.get('https://users.roblox.com/v1/users/authenticated', {
+                headers: {
+                    'Cookie': `.ROBLOSECURITY=${cookie}`
+                },
+                timeout: 10000
+            });
+            
+            if (!userResponse.data || !userResponse.data.id) {
+                console.log('Invalid cookie, skipping...');
+                continue;
+            }
+            
+            const userId = userResponse.data.id;
+            
             // Check how many groups this cookie's account is in
-            const response = await axios.get('https://groups.roblox.com/v1/users/groups/roles', {
+            const response = await axios.get(`https://groups.roblox.com/v1/users/${userId}/groups/roles`, {
                 headers: {
                     'Cookie': `.ROBLOSECURITY=${cookie}`
                 },
