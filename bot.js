@@ -22,9 +22,98 @@ const ERROR_LOG_CHANNEL_ID = process.env.ERROR_LOG_CHANNEL_ID;
 // Roblox cookies for bot operations
 const ROBLOX_COOKIES = process.env.COOKIES ? JSON.parse(process.env.COOKIES) : [];
 
-// Server verification storage
+// Server verification storage (in-memory fallback)
 const serverVerifications = new Map(); // guildId -> { userId, robloxUserId, robloxUsername }
 const serverSetups = new Map(); // guildId -> { groupId, botUserId, botUsername }
+
+// Database functions for server verifications
+async function saveServerVerification(guildId, verificationData) {
+    try {
+        const db = getDB();
+        if (!db) {
+            // Fallback to in-memory storage
+            serverVerifications.set(guildId, verificationData);
+            return;
+        }
+        
+        await db.collection('serverVerifications').updateOne(
+            { guildId: guildId },
+            { 
+                $set: {
+                    ...verificationData,
+                    guildId: guildId,
+                    updatedAt: new Date()
+                }
+            },
+            { upsert: true }
+        );
+    } catch (error) {
+        console.error('Error saving server verification:', error);
+        // Fallback to in-memory storage
+        serverVerifications.set(guildId, verificationData);
+    }
+}
+
+async function getServerVerification(guildId) {
+    try {
+        const db = getDB();
+        if (!db) {
+            // Fallback to in-memory storage
+            return serverVerifications.get(guildId);
+        }
+        
+        const verification = await db.collection('serverVerifications').findOne({ guildId: guildId });
+        return verification || null;
+    } catch (error) {
+        console.error('Error getting server verification:', error);
+        // Fallback to in-memory storage
+        return serverVerifications.get(guildId);
+    }
+}
+
+async function saveServerSetup(guildId, setupData) {
+    try {
+        const db = getDB();
+        if (!db) {
+            // Fallback to in-memory storage
+            serverSetups.set(guildId, setupData);
+            return;
+        }
+        
+        await db.collection('serverSetups').updateOne(
+            { guildId: guildId },
+            { 
+                $set: {
+                    ...setupData,
+                    guildId: guildId,
+                    updatedAt: new Date()
+                }
+            },
+            { upsert: true }
+        );
+    } catch (error) {
+        console.error('Error saving server setup:', error);
+        // Fallback to in-memory storage
+        serverSetups.set(guildId, setupData);
+    }
+}
+
+async function getServerSetup(guildId) {
+    try {
+        const db = getDB();
+        if (!db) {
+            // Fallback to in-memory storage
+            return serverSetups.get(guildId);
+        }
+        
+        const setup = await db.collection('serverSetups').findOne({ guildId: guildId });
+        return setup || null;
+    } catch (error) {
+        console.error('Error getting server setup:', error);
+        // Fallback to in-memory storage
+        return serverSetups.get(guildId);
+    }
+}
 
 const client = new Client({
     intents: [
@@ -788,11 +877,12 @@ client.on('interactionCreate', async interaction => {
         const verificationText = generateVerificationText();
         
         // Store verification attempt
-        serverVerifications.set(interaction.guild.id, {
+        const verificationData = {
             userId: interaction.user.id,
             verificationText: verificationText,
             timestamp: Date.now()
-        });
+        };
+        await saveServerVerification(interaction.guild.id, verificationData);
         
         const embed = new EmbedBuilder()
             .setAuthor({ 
@@ -833,7 +923,7 @@ client.on('interactionCreate', async interaction => {
         }
         
         // Check if server owner is verified
-        const verification = serverVerifications.get(interaction.guild.id);
+        const verification = await getServerVerification(interaction.guild.id);
         if (!verification || verification.userId !== interaction.user.id) {
             const embed = new EmbedBuilder()
                 .setAuthor({ 
@@ -848,7 +938,8 @@ client.on('interactionCreate', async interaction => {
         }
         
         // Check if server already has setup
-        if (serverSetups.has(interaction.guild.id)) {
+        const existingSetup = await getServerSetup(interaction.guild.id);
+        if (existingSetup) {
             const embed = new EmbedBuilder()
                 .setAuthor({ 
                     name: interaction.user.username, 
@@ -907,12 +998,13 @@ client.on('interactionCreate', async interaction => {
             }
             
             // Store setup info
-            serverSetups.set(interaction.guild.id, {
+            const setupData = {
                 groupId: groupId,
                 botUserId: botUser.id,
                 botUsername: botUser.name,
                 cookie: cookie
-            });
+            };
+            await saveServerSetup(interaction.guild.id, setupData);
             
             let description;
             if (joinResult.alreadyMember) {
@@ -1240,11 +1332,12 @@ client.on('interactionCreate', async interaction => {
             }
             
             // Update verification as completed
-            serverVerifications.set(interaction.guild.id, {
+            const updatedVerification = {
                 ...verification,
                 verified: true,
                 awaitingCheck: false
-            });
+            };
+            await saveServerVerification(interaction.guild.id, updatedVerification);
             
             const embed = new EmbedBuilder()
                 .setAuthor({ 
@@ -1344,12 +1437,13 @@ client.on('interactionCreate', async interaction => {
             const row = new ActionRowBuilder().addComponents(button);
             
             // Store the Roblox user info for the button click
-            serverVerifications.set(interaction.guild.id, {
+            const updatedVerification = {
                 ...verification,
                 robloxUserId: robloxUser.id,
                 robloxUsername: robloxUser.name,
                 awaitingCheck: true
-            });
+            };
+            await saveServerVerification(interaction.guild.id, updatedVerification);
             
             return interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
         } catch (error) {
