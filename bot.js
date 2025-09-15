@@ -84,13 +84,7 @@ const commands = [
         ),
     new SlashCommandBuilder()
         .setName('verify')
-        .setDescription('Verify your Roblox account (Server Owner Only)')
-        .addStringOption(option =>
-            option
-                .setName('verification_text')
-                .setDescription('The verification text to place in your Roblox status')
-                .setRequired(true)
-        ),
+        .setDescription('Verify your Roblox account (Server Owner Only)'),
     new SlashCommandBuilder()
         .setName('setup')
         .setDescription('Set up ArrowAPI bot for your server (Verified Server Owner Only)')
@@ -289,15 +283,33 @@ async function getRobloxUserFromUsername(username) {
     }
 }
 
-// Get Roblox user status
-async function getRobloxUserStatus(userId) {
+// Generate random verification text with fruits and vegetables
+function generateVerificationText() {
+    const fruits = ['apple', 'banana', 'orange', 'grape', 'strawberry', 'blueberry', 'watermelon', 'pineapple', 'mango', 'kiwi', 'peach', 'plum', 'cherry', 'lemon', 'lime'];
+    const vegetables = ['carrot', 'broccoli', 'spinach', 'tomato', 'cucumber', 'pepper', 'onion', 'garlic', 'potato', 'zucchini', 'lettuce', 'cabbage', 'celery', 'radish', 'beet'];
+    
+    const allItems = [...fruits, ...vegetables];
+    const selectedItems = [];
+    
+    // Select 3 random items
+    for (let i = 0; i < 3; i++) {
+        const randomIndex = Math.floor(Math.random() * allItems.length);
+        selectedItems.push(allItems[randomIndex]);
+        allItems.splice(randomIndex, 1); // Remove to avoid duplicates
+    }
+    
+    return selectedItems.join(' ');
+}
+
+// Get Roblox user description
+async function getRobloxUserDescription(userId) {
     try {
-        const response = await axios.get(`https://users.roblox.com/v1/users/${userId}/status`, {
+        const response = await axios.get(`https://users.roblox.com/v1/users/${userId}`, {
             timeout: 10000
         });
-        return response.data;
+        return response.data.description || '';
     } catch (error) {
-        console.error('Error fetching Roblox user status:', error);
+        console.error('Error fetching Roblox user description:', error);
         return null;
     }
 }
@@ -633,7 +645,8 @@ client.on('interactionCreate', async interaction => {
             return interaction.reply({ embeds: [embed], ephemeral: true });
         }
         
-        const verificationText = interaction.options.getString('verification_text');
+        // Generate random verification text
+        const verificationText = generateVerificationText();
         
         // Store verification attempt
         serverVerifications.set(interaction.guild.id, {
@@ -648,7 +661,7 @@ client.on('interactionCreate', async interaction => {
                 iconURL: interaction.user.displayAvatarURL() 
             })
             .setTitle('Roblox Account Verification')
-            .setDescription(`Please set your Roblox status to: **${verificationText}**\n\nOnce you've updated your status, please provide your Roblox username to complete verification.`)
+            .setDescription(`Please provide your Roblox username first, then you'll be given verification instructions.`)
             .setColor('#FFFFFF');
         
         const modal = new ModalBuilder()
@@ -1018,7 +1031,85 @@ client.on('interactionCreate', async interaction => {
 client.on('interactionCreate', async interaction => {
     if (!interaction.isButton()) return;
 
-    if (interaction.customId === 'link_account') {
+    if (interaction.customId.startsWith('verify_check_')) {
+        const robloxUserId = interaction.customId.replace('verify_check_', '');
+        const verification = serverVerifications.get(interaction.guild.id);
+        
+        if (!verification || verification.userId !== interaction.user.id || !verification.awaitingCheck) {
+            const embed = new EmbedBuilder()
+                .setAuthor({ 
+                    name: interaction.user.username, 
+                    iconURL: interaction.user.displayAvatarURL() 
+                })
+                .setTitle('Verification Failed')
+                .setDescription('Verification session expired or invalid. Please run `/verify` again.')
+                .setColor('#FFFFFF');
+            
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+        
+        try {
+            // Get user's description
+            const description = await getRobloxUserDescription(parseInt(robloxUserId));
+            if (description === null) {
+                const embed = new EmbedBuilder()
+                    .setAuthor({ 
+                        name: interaction.user.username, 
+                        iconURL: interaction.user.displayAvatarURL() 
+                    })
+                    .setTitle('Verification Failed')
+                    .setDescription('Could not fetch your Roblox profile. Please try again.')
+                    .setColor('#FFFFFF');
+                
+                return interaction.reply({ embeds: [embed], ephemeral: true });
+            }
+            
+            // Check if verification text is in description
+            if (!description.includes(verification.verificationText)) {
+                const embed = new EmbedBuilder()
+                    .setAuthor({ 
+                        name: interaction.user.username, 
+                        iconURL: interaction.user.displayAvatarURL() 
+                    })
+                    .setTitle('Verification Failed')
+                    .setDescription(`Your Roblox description does not contain the verification text. Please add this to your description:\n\`\`\`${verification.verificationText}\`\`\`\n\nThen try again.`)
+                    .setColor('#FFFFFF');
+                
+                return interaction.reply({ embeds: [embed], ephemeral: true });
+            }
+            
+            // Update verification as completed
+            serverVerifications.set(interaction.guild.id, {
+                ...verification,
+                verified: true,
+                awaitingCheck: false
+            });
+            
+            const embed = new EmbedBuilder()
+                .setAuthor({ 
+                    name: interaction.user.username, 
+                    iconURL: interaction.user.displayAvatarURL() 
+                })
+                .setTitle('Verification Successful')
+                .setDescription(`Successfully verified your Roblox account: **${verification.robloxUsername} (${verification.robloxUserId})**\n\nYou can now use the \`/setup\` command to set up your server.`)
+                .setColor('#FFFFFF');
+            
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        } catch (error) {
+            console.error('Verification check error:', error);
+            
+            const embed = new EmbedBuilder()
+                .setAuthor({ 
+                    name: interaction.user.username, 
+                    iconURL: interaction.user.displayAvatarURL() 
+                })
+                .setTitle('Verification Failed')
+                .setDescription('An error occurred while checking your verification. Please try again.')
+                .setColor('#FFFFFF');
+            
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+    } else if (interaction.customId === 'link_account') {
         const modal = new ModalBuilder()
             .setCustomId('link_form')
             .setTitle('Link Discord Account');
@@ -1074,39 +1165,32 @@ client.on('interactionCreate', async interaction => {
                 return interaction.reply({ embeds: [embed], ephemeral: true });
             }
             
-            // Get user's status
-            const statusData = await getRobloxUserStatus(robloxUser.id);
-            if (!statusData || statusData.status !== verification.verificationText) {
-                const embed = new EmbedBuilder()
-                    .setAuthor({ 
-                        name: interaction.user.username, 
-                        iconURL: interaction.user.displayAvatarURL() 
-                    })
-                    .setTitle('Verification Failed')
-                    .setDescription(`Your Roblox status does not match the verification text. Please set your status to: **${verification.verificationText}**`)
-                    .setColor('#FFFFFF');
-                
-                return interaction.reply({ embeds: [embed], ephemeral: true });
-            }
-            
-            // Update verification with Roblox info
-            serverVerifications.set(interaction.guild.id, {
-                ...verification,
-                robloxUserId: robloxUser.id,
-                robloxUsername: robloxUser.name,
-                verified: true
-            });
-            
+            // Show verification instructions
             const embed = new EmbedBuilder()
                 .setAuthor({ 
                     name: interaction.user.username, 
                     iconURL: interaction.user.displayAvatarURL() 
                 })
-                .setTitle('Verification Successful')
-                .setDescription(`Successfully verified your Roblox account: **${robloxUser.name} (${robloxUser.id})**\n\nYou can now use the \`/setup\` command to set up your server.`)
+                .setTitle('Verification Instructions')
+                .setDescription(`**Step 1:** Go to your Roblox profile: https://www.roblox.com/users/${robloxUser.id}/profile\n\n**Step 2:** Edit your description and add this text anywhere in it:\n\`\`\`${verification.verificationText}\`\`\`\n\n**Step 3:** Click the button below once you've updated your description.`)
                 .setColor('#FFFFFF');
             
-            return interaction.reply({ embeds: [embed], ephemeral: true });
+            const button = new ButtonBuilder()
+                .setCustomId(`verify_check_${robloxUser.id}`)
+                .setLabel('Check Verification')
+                .setStyle(ButtonStyle.Primary);
+            
+            const row = new ActionRowBuilder().addComponents(button);
+            
+            // Store the Roblox user info for the button click
+            serverVerifications.set(interaction.guild.id, {
+                ...verification,
+                robloxUserId: robloxUser.id,
+                robloxUsername: robloxUser.name,
+                awaitingCheck: true
+            });
+            
+            return interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
         } catch (error) {
             console.error('Roblox verification error:', error);
             
