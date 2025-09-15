@@ -391,4 +391,109 @@ router.get('/catalog/search', validateApiKey, async (req, res) => {
   }
 });
 
+// Role Management APIs
+router.patch('/role/:userId', validateApiKey, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    const { roleId, roleRank, roleName } = req.body;
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+    
+    // At least one role parameter is required
+    if (!roleId && !roleRank && !roleName) {
+      return res.status(400).json({ 
+        error: 'At least one of roleId, roleRank, or roleName is required' 
+      });
+    }
+    
+    // Get available cookie for role management
+    const cookie = await robloxService.getAvailableCookie();
+    if (!cookie) {
+      return res.status(503).json({ 
+        error: 'No available bot accounts for role management' 
+      });
+    }
+    
+    // For this example, we'll use a default group ID from environment or require it in request
+    // In a real implementation, you'd determine the group ID based on the server/user context
+    const groupId = req.body.groupId || process.env.DEFAULT_GROUP_ID;
+    if (!groupId) {
+      return res.status(400).json({ 
+        error: 'Group ID is required' 
+      });
+    }
+    
+    const result = await robloxService.setUserRole(
+      parseInt(groupId), 
+      userId, 
+      roleId ? parseInt(roleId) : null, 
+      roleRank ? parseInt(roleRank) : null, 
+      roleName, 
+      cookie
+    );
+    
+    res.json({
+      apiKey: req.apiKeyStatus,
+      success: true,
+      userId: userId,
+      role: result.role,
+      message: `Successfully assigned role to user ${userId}`
+    });
+  } catch (error) {
+    console.error('Role assignment error:', error);
+    res.status(500).json({ 
+      error: 'Failed to assign role',
+      message: error.message 
+    });
+  }
+});
+
+router.delete('/exile/:userId', validateApiKey, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+    
+    // Get available cookie for exile operations
+    const cookie = await robloxService.getAvailableCookie();
+    if (!cookie) {
+      return res.status(503).json({ 
+        error: 'No available bot accounts for exile operations' 
+      });
+    }
+    
+    // For this example, we'll use a default group ID from environment or require it in request
+    const groupId = req.body.groupId || process.env.DEFAULT_GROUP_ID;
+    if (!groupId) {
+      return res.status(400).json({ 
+        error: 'Group ID is required' 
+      });
+    }
+    
+    const result = await robloxService.exileUser(
+      parseInt(groupId), 
+      userId, 
+      cookie
+    );
+    
+    res.json({
+      apiKey: req.apiKeyStatus,
+      success: true,
+      userId: userId,
+      groupId: parseInt(groupId),
+      message: `Successfully exiled user ${userId} from group ${groupId}`
+    });
+  } catch (error) {
+    console.error('Exile error:', error);
+    res.status(500).json({ 
+      error: 'Failed to exile user',
+      message: error.message 
+    });
+  }
+});
+
 module.exports = router;

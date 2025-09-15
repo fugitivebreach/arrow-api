@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Role Management - Arrow API Documentation</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-arrow-right"></i>
+                <span>Arrow API</span>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/docs" class="nav-link">Documentation</a>
+                <% if (typeof user !== 'undefined' && user) { %>
+                    <a href="/dashboard" class="nav-link">Dashboard</a>
+                    <a href="/verify" class="nav-link">Verify</a>
+                    <div class="user-menu">
+                        <img src="https://cdn.discordapp.com/avatars/<%= user.discordId %>/<%= user.avatar %>.png" alt="Avatar" class="user-avatar">
+                        <span class="username"><%= user.username %></span>
+                        <a href="/auth/logout" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </a>
+                    </div>
+                <% } else { %>
+                    <a href="/login" class="login-btn">
+                        <i class="fab fa-discord"></i>
+                        Login with Discord
+                    </a>
+                <% } %>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="docs-container">
+            <div class="docs-sidebar">
+                <nav class="docs-nav">
+                    <ul>
+                        <li><a href="/docs">Getting Started</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" onclick="toggleDropdown(this)">ROBLOX APIs</a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/docs/roblox/user-profile">User Profile</a></li>
+                                <li><a href="/docs/roblox/user-games">User Games</a></li>
+                                <li><a href="/docs/roblox/group-membership">Group Membership</a></li>
+                                <li><a href="/docs/roblox/group-extended">Group Extended</a></li>
+                                <li class="dropdown">
+                                    <a href="#" class="dropdown-toggle" onclick="toggleDropdown(this)">Social APIs</a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="/docs/roblox/social/friends">Friends</a></li>
+                                        <li><a href="/docs/roblox/social/followers">Followers</a></li>
+                                        <li><a href="/docs/roblox/social/presence">Presence</a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="/docs/roblox/assets">Asset & Catalog</a></li>
+                                <li><a href="/docs/roblox/role-management" class="active">Role Management</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="/docs/examples">Code Examples</a></li>
+                        <li><a href="/docs/responses">Response Format</a></li>
+                        <li><a href="/docs/rate-limits">Rate Limits</a></li>
+                        <li><a href="/health">Health Check</a></li>
+                    </ul>
+                </nav>
+            </div>
+
+            <div class="docs-content">
+                <h1>🛡️ Role Management APIs</h1>
+                <p>Manage group member roles and exile users from groups using ArrowAPI's role management endpoints.</p>
+
+                <div class="alert alert-warning">
+                    <strong>⚠️ Important:</strong> These endpoints require special bot account permissions and are only available to verified server owners who have completed the setup process using the Discord bot.
+                </div>
+
+                <section id="assign-role">
+                    <h2>Assign Role to User</h2>
+                    <p>Assign a specific role to a group member by role ID, rank, or name.</p>
+
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method patch">PATCH</span>
+                            <span class="endpoint-url">/role/{userId}</span>
+                        </div>
+                    </div>
+
+                    <h3>Parameters</h3>
+                    <div class="params-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>userId</code></td>
+                                    <td>number</td>
+                                    <td>✅</td>
+                                    <td>Roblox user ID to assign role to</td>
+                                </tr>
+                                <tr>
+                                    <td><code>roleId</code></td>
+                                    <td>number</td>
+                                    <td>❌*</td>
+                                    <td>ID of role to assign</td>
+                                </tr>
+                                <tr>
+                                    <td><code>roleRank</code></td>
+                                    <td>number</td>
+                                    <td>❌*</td>
+                                    <td>Rank of role to assign</td>
+                                </tr>
+                                <tr>
+                                    <td><code>roleName</code></td>
+                                    <td>string</td>
+                                    <td>❌*</td>
+                                    <td>Name of role to assign</td>
+                                </tr>
+                                <tr>
+                                    <td><code>groupId</code></td>
+                                    <td>number</td>
+                                    <td>✅</td>
+                                    <td>Group ID to assign role in</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="note">* At least one of <code>roleId</code>, <code>roleRank</code>, or <code>roleName</code> is required.</p>
+                    </div>
+
+                    <h3>Example Request</h3>
+                    <div class="code-block">
+                        <pre><code>curl -X PATCH "https://arrow-api.up.railway.app/role/1823986679" \
+  -H "api-key: your-api-key-here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "roleId": 12345,
+    "groupId": 67890
+  }'</code></pre>
+                    </div>
+
+                    <h3>Example Response</h3>
+                    <div class="code-block">
+                        <pre><code>{
+  "apiKey": "Valid",
+  "success": true,
+  "userId": 1823986679,
+  "role": {
+    "id": 12345,
+    "name": "Member",
+    "rank": 1
+  },
+  "message": "Successfully assigned role to user 1823986679"
+}</code></pre>
+                    </div>
+
+                    <h3>Alternative Examples</h3>
+                    <div class="code-block">
+                        <h4>Assign by Role Rank</h4>
+                        <pre><code>curl -X PATCH "https://arrow-api.up.railway.app/role/1823986679" \
+  -H "api-key: your-api-key-here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "roleRank": 100,
+    "groupId": 67890
+  }'</code></pre>
+                    </div>
+
+                    <div class="code-block">
+                        <h4>Assign by Role Name</h4>
+                        <pre><code>curl -X PATCH "https://arrow-api.up.railway.app/role/1823986679" \
+  -H "api-key: your-api-key-here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "roleName": "Moderator",
+    "groupId": 67890
+  }'</code></pre>
+                    </div>
+                </section>
+
+                <section id="exile-user">
+                    <h2>Exile User from Group</h2>
+                    <p>Remove a user from a group (exile them).</p>
+
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method delete">DELETE</span>
+                            <span class="endpoint-url">/exile/{userId}</span>
+                        </div>
+                    </div>
+
+                    <h3>Parameters</h3>
+                    <div class="params-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>userId</code></td>
+                                    <td>number</td>
+                                    <td>✅</td>
+                                    <td>Roblox user ID to exile</td>
+                                </tr>
+                                <tr>
+                                    <td><code>groupId</code></td>
+                                    <td>number</td>
+                                    <td>✅</td>
+                                    <td>Group ID to exile user from</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3>Example Request</h3>
+                    <div class="code-block">
+                        <pre><code>curl -X DELETE "https://arrow-api.up.railway.app/exile/1823986679" \
+  -H "api-key: your-api-key-here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "groupId": 67890
+  }'</code></pre>
+                    </div>
+
+                    <h3>Example Response</h3>
+                    <div class="code-block">
+                        <pre><code>{
+  "apiKey": "Valid",
+  "success": true,
+  "userId": 1823986679,
+  "groupId": 67890,
+  "message": "Successfully exiled user 1823986679 from group 67890"
+}</code></pre>
+                    </div>
+
+                    <h3>Lua Example (Roblox Studio)</h3>
+                    <div class="code-block">
+                        <pre><code>-- This example exiles the user RoManager_Bot (id 1823986679)
+local http = game:GetService('HttpService')
+
+local response = http:RequestAsync({
+    Url = 'https://arrow-api.up.railway.app/exile/1823986679',
+    Method = 'DELETE',
+    Headers = {
+        ['Content-Type'] = 'application/json',
+        ['api-key'] = 'your-api-key-here'
+    },
+    Body = http:JSONEncode({
+        groupId = 67890
+    })
+})
+
+if response.Success then
+    local data = http:JSONDecode(response.Body)
+    print("User exiled successfully:", data.message)
+else
+    print("Failed to exile user:", response.StatusMessage)
+end</code></pre>
+                    </div>
+                </section>
+
+                <section id="error-responses">
+                    <h2>Error Responses</h2>
+                    <p>Common error responses you might encounter when using role management endpoints:</p>
+
+                    <div class="error-examples">
+                        <h3>Invalid User ID</h3>
+                        <div class="code-block">
+                            <pre><code>{
+  "error": "Invalid user ID"
+}</code></pre>
+                        </div>
+
+                        <h3>Missing Role Parameters</h3>
+                        <div class="code-block">
+                            <pre><code>{
+  "error": "At least one of roleId, roleRank, or roleName is required"
+}</code></pre>
+                        </div>
+
+                        <h3>No Available Bot Accounts</h3>
+                        <div class="code-block">
+                            <pre><code>{
+  "error": "No available bot accounts for role management"
+}</code></pre>
+                        </div>
+
+                        <h3>Role Not Found</h3>
+                        <div class="code-block">
+                            <pre><code>{
+  "error": "Failed to assign role",
+  "message": "Role not found"
+}</code></pre>
+                        </div>
+
+                        <h3>Insufficient Permissions</h3>
+                        <div class="code-block">
+                            <pre><code>{
+  "error": "Failed to assign role",
+  "message": "Insufficient permissions to assign this role"
+}</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="setup-requirements">
+                    <h2>Setup Requirements</h2>
+                    <p>To use role management endpoints, you need to:</p>
+                    
+                    <ol>
+                        <li><strong>Be a server owner</strong> - Only Discord server owners can use these features</li>
+                        <li><strong>Verify your Roblox account</strong> - Use the <code>/verify</code> Discord bot command</li>
+                        <li><strong>Complete server setup</strong> - Use the <code>/setup</code> Discord bot command with your group ID</li>
+                        <li><strong>Have an API key</strong> - Generate one using <code>/api key_generate</code> or the dashboard</li>
+                    </ol>
+
+                    <div class="alert alert-info">
+                        <strong>💡 Pro Tip:</strong> The bot accounts automatically join your group during setup and have the necessary permissions to manage roles and exile users.
+                    </div>
+                </section>
+
+                <section id="rate-limits">
+                    <h2>Rate Limits</h2>
+                    <p>Role management endpoints have the same rate limits as other API endpoints:</p>
+                    <ul>
+                        <li><strong>100 requests per minute</strong> per API key</li>
+                        <li><strong>1000 requests per hour</strong> per API key</li>
+                    </ul>
+                    
+                    <div class="alert alert-warning">
+                        <strong>⚠️ Note:</strong> Role management operations may take longer to complete due to Roblox API limitations. Please allow sufficient time between requests.
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>Arrow API</h4>
+                <p>Comprehensive Roblox API</p>
+            </div>
+            <div class="footer-section">
+                <h4>Links</h4>
+                <a href="/docs">Documentation</a>
+                <a href="/dashboard">Dashboard</a>
+                <a href="https://github.com" target="_blank">GitHub</a>
+            </div>
+            <div class="footer-section">
+                <h4>Support</h4>
+                <a href="https://discord.gg/fR4YdqgTnB" target="_blank">Discord Server</a>
+                <a href="mailto:support@arrowapi.com">Contact</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Arrow API. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

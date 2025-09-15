@@ -10,6 +10,30 @@ class RobloxService {
     this.presenceURL = 'https://presence.roblox.com/v1';
     this.friendsURL = 'https://friends.roblox.com/v1';
     this.inventoryURL = 'https://inventory.roblox.com/v1';
+    // Get cookies from environment
+    this.cookies = process.env.COOKIES ? JSON.parse(process.env.COOKIES) : [];
+  }
+  
+  // Get available cookie for operations
+  async getAvailableCookie() {
+    for (const cookie of this.cookies) {
+      try {
+        // Test cookie validity
+        const response = await axios.get('https://users.roblox.com/v1/users/authenticated', {
+          headers: {
+            'Cookie': `.ROBLOSECURITY=${cookie}`
+          },
+          timeout: 5000
+        });
+        
+        if (response.data && response.data.id) {
+          return cookie;
+        }
+      } catch (error) {
+        continue;
+      }
+    }
+    return null;
   }
 
   async getGroupMembership(userId, groupId) {
@@ -452,6 +476,78 @@ class RobloxService {
     } catch (error) {
       console.error('Error searching catalog:', error);
       throw new Error('Failed to search catalog');
+    }
+  }
+
+  // Role Management APIs
+  async setUserRole(groupId, userId, roleId, roleRank, roleName, cookie) {
+    try {
+      // First get group roles to find the correct role
+      let targetRole = null;
+      
+      if (roleId) {
+        // Use roleId directly
+        targetRole = { id: roleId };
+      } else if (roleRank || roleName) {
+        // Get group roles to find by rank or name
+        const rolesResponse = await axios.get(`${this.baseURL}/groups/${groupId}/roles`, {
+          timeout: 10000
+        });
+        
+        if (rolesResponse.data && rolesResponse.data.roles) {
+          if (roleRank) {
+            targetRole = rolesResponse.data.roles.find(role => role.rank === roleRank);
+          } else if (roleName) {
+            targetRole = rolesResponse.data.roles.find(role => role.name.toLowerCase() === roleName.toLowerCase());
+          }
+        }
+      }
+      
+      if (!targetRole) {
+        throw new Error('Role not found');
+      }
+      
+      // Set the user's role
+      const response = await axios.patch(`${this.baseURL}/groups/${groupId}/users/${userId}`, {
+        roleId: targetRole.id
+      }, {
+        headers: {
+          'Cookie': `.ROBLOSECURITY=${cookie}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+      
+      return {
+        success: true,
+        role: targetRole,
+        userId: userId
+      };
+    } catch (error) {
+      console.error('Error setting user role:', error);
+      throw new Error(`Failed to set user role: ${error.response?.data?.errors?.[0]?.message || error.message}`);
+    }
+  }
+  
+  async exileUser(groupId, userId, cookie) {
+    try {
+      // Exile the user from the group
+      const response = await axios.delete(`${this.baseURL}/groups/${groupId}/users/${userId}`, {
+        headers: {
+          'Cookie': `.ROBLOSECURITY=${cookie}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+      
+      return {
+        success: true,
+        userId: userId,
+        groupId: groupId
+      };
+    } catch (error) {
+      console.error('Error exiling user:', error);
+      throw new Error(`Failed to exile user: ${error.response?.data?.errors?.[0]?.message || error.message}`);
     }
   }
 }

@@ -1,6 +1,9 @@
-const { Client, GatewayIntentBits, SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
+const { Client, GatewayIntentBits, SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, StringSelectMenuBuilder } = require('discord.js');
 const { getDB } = require('./config/database');
 const VerificationCode = require('./models/VerificationCode');
+const User = require('./models/User');
+const axios = require('axios');
+const crypto = require('crypto');
 
 // Configuration - Add these to your .env file
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
@@ -14,6 +17,14 @@ const AUTHORIZED_USER_IDS = process.env.AUTHORIZED_USER_IDS ? process.env.AUTHOR
 // Verification system configuration
 const VERIFICATION_CHANNEL_ID = process.env.VERIFICATION_CHANNEL_ID;
 const ROLES = process.env.ROLES ? process.env.ROLES.split(',') : [];
+const ERROR_LOG_CHANNEL_ID = process.env.ERROR_LOG_CHANNEL_ID;
+
+// Roblox cookies for bot operations
+const ROBLOX_COOKIES = process.env.COOKIES ? JSON.parse(process.env.COOKIES) : [];
+
+// Server verification storage
+const serverVerifications = new Map(); // guildId -> { userId, robloxUserId, robloxUsername }
+const serverSetups = new Map(); // guildId -> { groupId, botUserId, botUsername }
 
 const client = new Client({
     intents: [
@@ -52,6 +63,43 @@ const commands = [
     new SlashCommandBuilder()
         .setName('panel')
         .setDescription('Send verification panel to link Discord accounts'),
+    new SlashCommandBuilder()
+        .setName('api')
+        .setDescription('Manage API keys')
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('key_generate')
+                .setDescription('Generate a new API key')
+                .addStringOption(option =>
+                    option
+                        .setName('name')
+                        .setDescription('Name for your API key')
+                        .setRequired(true)
+                )
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('key_delete')
+                .setDescription('Delete an existing API key')
+        ),
+    new SlashCommandBuilder()
+        .setName('verify')
+        .setDescription('Verify your Roblox account (Server Owner Only)')
+        .addStringOption(option =>
+            option
+                .setName('verification_text')
+                .setDescription('The verification text to place in your Roblox status')
+                .setRequired(true)
+        ),
+    new SlashCommandBuilder()
+        .setName('setup')
+        .setDescription('Set up ArrowAPI bot for your server (Verified Server Owner Only)')
+        .addIntegerOption(option =>
+            option
+                .setName('group_id')
+                .setDescription('The group ID you wish to set up')
+                .setRequired(true)
+        ),
 ].map(command => command.toJSON());
 
 // Register commands
@@ -106,6 +154,41 @@ function isAuthorized(interaction) {
     return false;
 }
 
+// Generate unique error ID
+function generateErrorId() {
+    const segments = [];
+    for (let i = 0; i < 5; i++) {
+        const length = i === 4 ? 10 : (Math.random() < 0.5 ? 6 : 7);
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let segment = '';
+        for (let j = 0; j < length; j++) {
+            segment += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        segments.push(segment);
+    }
+    return segments.join('-');
+}
+
+// Log error to channel
+async function logError(errorId, error, command, userId) {
+    if (!ERROR_LOG_CHANNEL_ID) return;
+    
+    try {
+        const channel = await client.channels.fetch(ERROR_LOG_CHANNEL_ID);
+        if (channel && channel.isTextBased()) {
+            const embed = new EmbedBuilder()
+                .setTitle('Bot Error Logged')
+                .setDescription(`**Error ID:** ${errorId}\n**Command:** ${command}\n**User:** <@${userId}>\n**Error:** \`\`\`${error.message || error}\`\`\``)
+                .setColor('#FF0000')
+                .setTimestamp();
+            
+            await channel.send({ embeds: [embed] });
+        }
+    } catch (logError) {
+        console.error('Failed to log error to channel:', logError);
+    }
+}
+
 // Get user's API keys from database
 async function getUserApiKeys(userId) {
     try {
@@ -120,10 +203,169 @@ async function getUserApiKeys(userId) {
             return [];
         }
         
-        return user.apiKeys.filter(key => key.isActive).map(key => key.name || 'Unnamed Key');
+        return user.apiKeys.filter(key => key.isActive).map(key => ({ name: key.name || 'Unnamed Key', id: key._id.toString() }));
     } catch (error) {
         console.error('Error fetching user API keys:', error);
         return [];
+    }
+}
+
+// Generate API key for user
+async function generateApiKey(userId, keyName) {
+    try {
+        const db = getDB();
+        if (!db) {
+            return { success: false, error: 'DATABASE_ERROR' };
+        }
+        
+        let user = await db.collection('users').findOne({ discordId: userId });
+        if (!user) {
+            return { success: false, error: 'USER_NOT_FOUND' };
+        }
+        
+        const userObj = new User(user);
+        const apiKey = userObj.generateApiKey(keyName);
+        await userObj.save();
+        
+        return { success: true, apiKey };
+    } catch (error) {
+        console.error('Error generating API key:', error);
+        return { success: false, error: 'DATABASE_ERROR' };
+    }
+}
+
+// Delete API key for user
+async function deleteApiKey(userId, keyId) {
+    try {
+        const db = getDB();
+        if (!db) {
+            return { success: false, error: 'DATABASE_ERROR' };
+        }
+        
+        let user = await db.collection('users').findOne({ discordId: userId });
+        if (!user) {
+            return { success: false, error: 'USER_NOT_FOUND' };
+        }
+        
+        const keyToDelete = user.apiKeys.find(key => key._id.toString() === keyId);
+        if (!keyToDelete) {
+            return { success: false, error: 'KEY_NOT_FOUND' };
+        }
+        
+        const keyName = keyToDelete.name || 'Unnamed Key';
+        
+        const userObj = new User(user);
+        userObj.removeApiKey(keyId);
+        await userObj.save();
+        
+        return { success: true, keyName };
+    } catch (error) {
+        console.error('Error deleting API key:', error);
+        return { success: false, error: 'DATABASE_ERROR' };
+    }
+}
+
+// Check if user is server owner
+function isServerOwner(interaction) {
+    return interaction.guild && interaction.guild.ownerId === interaction.user.id;
+}
+
+// Get Roblox user info from username
+async function getRobloxUserFromUsername(username) {
+    try {
+        const response = await axios.post('https://users.roblox.com/v1/usernames/users', {
+            usernames: [username]
+        }, {
+            timeout: 10000
+        });
+        
+        if (response.data && response.data.data && response.data.data.length > 0) {
+            return response.data.data[0];
+        }
+        return null;
+    } catch (error) {
+        console.error('Error fetching Roblox user:', error);
+        return null;
+    }
+}
+
+// Get Roblox user status
+async function getRobloxUserStatus(userId) {
+    try {
+        const response = await axios.get(`https://users.roblox.com/v1/users/${userId}/status`, {
+            timeout: 10000
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching Roblox user status:', error);
+        return null;
+    }
+}
+
+// Find available cookie for group operations
+async function findAvailableCookie() {
+    for (const cookie of ROBLOX_COOKIES) {
+        try {
+            // Check how many groups this cookie's account is in
+            const response = await axios.get('https://groups.roblox.com/v1/users/groups/roles', {
+                headers: {
+                    'Cookie': `.ROBLOSECURITY=${cookie}`
+                },
+                timeout: 10000
+            });
+            
+            if (response.data && response.data.data && response.data.data.length < 100) {
+                return cookie;
+            }
+        } catch (error) {
+            console.error('Error checking cookie:', error);
+            continue;
+        }
+    }
+    return null;
+}
+
+// Get current user info from cookie
+async function getCurrentUserFromCookie(cookie) {
+    try {
+        const response = await axios.get('https://users.roblox.com/v1/users/authenticated', {
+            headers: {
+                'Cookie': `.ROBLOSECURITY=${cookie}`
+            },
+            timeout: 10000
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error getting current user from cookie:', error);
+        return null;
+    }
+}
+
+// Join group with cookie
+async function joinGroupWithCookie(groupId, cookie) {
+    try {
+        // First get group info
+        const groupResponse = await axios.get(`https://groups.roblox.com/v1/groups/${groupId}`, {
+            timeout: 10000
+        });
+        
+        if (!groupResponse.data) {
+            throw new Error('Group not found');
+        }
+        
+        // Join the group
+        const joinResponse = await axios.post(`https://groups.roblox.com/v1/groups/${groupId}/users`, {}, {
+            headers: {
+                'Cookie': `.ROBLOSECURITY=${cookie}`,
+                'Content-Type': 'application/json'
+            },
+            timeout: 10000
+        });
+        
+        return { success: true, groupName: groupResponse.data.name };
+    } catch (error) {
+        console.error('Error joining group:', error);
+        return { success: false, error: error.message };
     }
 }
 
@@ -270,8 +512,272 @@ client.on('interactionCreate', async interaction => {
     if (!interaction.isChatInputCommand()) return;
 
     const { commandName } = interaction;
+    
+    if (commandName === 'api') {
+        const subcommand = interaction.options.getSubcommand();
+        
+        if (subcommand === 'key_generate') {
+            const keyName = interaction.options.getString('name');
+            
+            try {
+                const result = await generateApiKey(interaction.user.id, keyName);
+                
+                if (!result.success) {
+                    let description;
+                    switch (result.error) {
+                        case 'USER_NOT_FOUND':
+                            description = 'You need to log in to the ArrowAPI dashboard first to create API keys.';
+                            break;
+                        default:
+                            description = 'An error occurred while generating your API key.';
+                    }
+                    
+                    const embed = new EmbedBuilder()
+                        .setAuthor({ 
+                            name: interaction.user.username, 
+                            iconURL: interaction.user.displayAvatarURL() 
+                        })
+                        .setDescription(description)
+                        .setColor('#FFFFFF');
+                    
+                    return interaction.reply({ embeds: [embed], ephemeral: true });
+                }
+                
+                const embed = new EmbedBuilder()
+                    .setAuthor({ 
+                        name: interaction.user.username, 
+                        iconURL: interaction.user.displayAvatarURL() 
+                    })
+                    .setTitle('API Key Generated')
+                    .setDescription(`\`\`\`${result.apiKey}\`\`\``)
+                    .setColor('#FFFFFF');
+                
+                return interaction.reply({ embeds: [embed], ephemeral: true });
+            } catch (error) {
+                console.error('API key generation error:', error);
+                
+                const embed = new EmbedBuilder()
+                    .setAuthor({ 
+                        name: interaction.user.username, 
+                        iconURL: interaction.user.displayAvatarURL() 
+                    })
+                    .setDescription('An error occurred while generating your API key.')
+                    .setColor('#FFFFFF');
+                
+                return interaction.reply({ embeds: [embed], ephemeral: true });
+            }
+        } else if (subcommand === 'key_delete') {
+            try {
+                const apiKeys = await getUserApiKeys(interaction.user.id);
+                
+                if (apiKeys.length === 0) {
+                    const embed = new EmbedBuilder()
+                        .setAuthor({ 
+                            name: interaction.user.username, 
+                            iconURL: interaction.user.displayAvatarURL() 
+                        })
+                        .setDescription('You have no API keys to delete.')
+                        .setColor('#FFFFFF');
+                    
+                    return interaction.reply({ embeds: [embed], ephemeral: true });
+                }
+                
+                const selectMenu = new StringSelectMenuBuilder()
+                    .setCustomId('delete_api_key')
+                    .setPlaceholder('Select an API key to delete')
+                    .addOptions(
+                        apiKeys.map(key => ({
+                            label: key.name,
+                            value: key.id,
+                            description: `Delete ${key.name}`
+                        }))
+                    );
+                
+                const row = new ActionRowBuilder().addComponents(selectMenu);
+                
+                const embed = new EmbedBuilder()
+                    .setAuthor({ 
+                        name: interaction.user.username, 
+                        iconURL: interaction.user.displayAvatarURL() 
+                    })
+                    .setTitle('Delete API Key')
+                    .setDescription('Select an API key to delete from the dropdown below.')
+                    .setColor('#FFFFFF');
+                
+                return interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
+            } catch (error) {
+                console.error('API key deletion setup error:', error);
+                
+                const embed = new EmbedBuilder()
+                    .setAuthor({ 
+                        name: interaction.user.username, 
+                        iconURL: interaction.user.displayAvatarURL() 
+                    })
+                    .setDescription('An error occurred while loading your API keys.')
+                    .setColor('#FFFFFF');
+                
+                return interaction.reply({ embeds: [embed], ephemeral: true });
+            }
+        }
+    } else if (commandName === 'verify') {
+        if (!isServerOwner(interaction)) {
+            const embed = new EmbedBuilder()
+                .setAuthor({ 
+                    name: interaction.user.username, 
+                    iconURL: interaction.user.displayAvatarURL() 
+                })
+                .setTitle('Access Denied')
+                .setDescription('This command is only available to server owners.')
+                .setColor('#FFFFFF');
+            
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+        
+        const verificationText = interaction.options.getString('verification_text');
+        
+        // Store verification attempt
+        serverVerifications.set(interaction.guild.id, {
+            userId: interaction.user.id,
+            verificationText: verificationText,
+            timestamp: Date.now()
+        });
+        
+        const embed = new EmbedBuilder()
+            .setAuthor({ 
+                name: interaction.user.username, 
+                iconURL: interaction.user.displayAvatarURL() 
+            })
+            .setTitle('Roblox Account Verification')
+            .setDescription(`Please set your Roblox status to: **${verificationText}**\n\nOnce you've updated your status, please provide your Roblox username to complete verification.`)
+            .setColor('#FFFFFF');
+        
+        const modal = new ModalBuilder()
+            .setCustomId('roblox_verification')
+            .setTitle('Roblox Username Verification');
+        
+        const usernameInput = new TextInputBuilder()
+            .setCustomId('roblox_username')
+            .setLabel('Your Roblox Username')
+            .setStyle(TextInputStyle.Short)
+            .setPlaceholder('Enter your exact Roblox username')
+            .setRequired(true);
+        
+        const firstActionRow = new ActionRowBuilder().addComponents(usernameInput);
+        modal.addComponents(firstActionRow);
+        
+        await interaction.showModal(modal);
+    } else if (commandName === 'setup') {
+        if (!isServerOwner(interaction)) {
+            const embed = new EmbedBuilder()
+                .setAuthor({ 
+                    name: interaction.user.username, 
+                    iconURL: interaction.user.displayAvatarURL() 
+                })
+                .setTitle('Access Denied')
+                .setDescription('This command is only available to server owners.')
+                .setColor('#FFFFFF');
+            
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+        
+        // Check if server owner is verified
+        const verification = serverVerifications.get(interaction.guild.id);
+        if (!verification || verification.userId !== interaction.user.id) {
+            const embed = new EmbedBuilder()
+                .setAuthor({ 
+                    name: interaction.user.username, 
+                    iconURL: interaction.user.displayAvatarURL() 
+                })
+                .setTitle('Verification Required')
+                .setDescription('You must verify your Roblox account first using the `/verify` command.')
+                .setColor('#FFFFFF');
+            
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+        
+        // Check if server already has setup
+        if (serverSetups.has(interaction.guild.id)) {
+            const embed = new EmbedBuilder()
+                .setAuthor({ 
+                    name: interaction.user.username, 
+                    iconURL: interaction.user.displayAvatarURL() 
+                })
+                .setTitle('Already Set Up')
+                .setDescription('This server has already been set up with ArrowAPI.')
+                .setColor('#FFFFFF');
+            
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+        
+        const groupId = interaction.options.getInteger('group_id');
+        
+        try {
+            // Find available cookie
+            const cookie = await findAvailableCookie();
+            if (!cookie) {
+                const embed = new EmbedBuilder()
+                    .setAuthor({ 
+                        name: interaction.user.username, 
+                        iconURL: interaction.user.displayAvatarURL() 
+                    })
+                    .setTitle('ArrowAPI Bots Are Full')
+                    .setDescription('Please try again later.')
+                    .setColor('#FFFFFF');
+                
+                return interaction.reply({ embeds: [embed], ephemeral: true });
+            }
+            
+            // Get bot user info
+            const botUser = await getCurrentUserFromCookie(cookie);
+            if (!botUser) {
+                throw new Error('Failed to get bot user info');
+            }
+            
+            // Join the group
+            const joinResult = await joinGroupWithCookie(groupId, cookie);
+            if (!joinResult.success) {
+                throw new Error(joinResult.error);
+            }
+            
+            // Store setup info
+            serverSetups.set(interaction.guild.id, {
+                groupId: groupId,
+                botUserId: botUser.id,
+                botUsername: botUser.name,
+                cookie: cookie
+            });
+            
+            const embed = new EmbedBuilder()
+                .setAuthor({ 
+                    name: interaction.user.username, 
+                    iconURL: interaction.user.displayAvatarURL() 
+                })
+                .setTitle('Setup Successful')
+                .setDescription(`Successfully joined **${joinResult.groupName} (${groupId})**. I've joined with the account **${botUser.name} (${botUser.id})**`)
+                .setColor('#FFFFFF');
+            
+            return interaction.reply({ embeds: [embed] });
+        } catch (error) {
+            console.error('Setup error:', error);
+            
+            const errorId = generateErrorId();
+            await logError(errorId, error, 'setup', interaction.user.id);
+            
+            const embed = new EmbedBuilder()
+                .setAuthor({ 
+                    name: interaction.user.username, 
+                    iconURL: interaction.user.displayAvatarURL() 
+                })
+                .setTitle('Setup Failed')
+                .setDescription('An internal bot error occurred with the **setup** command. Please try again. If this error continues to occur, please join the support server and notify us of the issue.')
+                .setFooter({ text: `Error ID: ${errorId}` })
+                .setColor('#FFFFFF');
+            
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+    }
 
-    if (commandName === 'blacklist') {
+    else if (commandName === 'blacklist') {
         const subcommand = interaction.options.getSubcommand();
         const userId = interaction.options.getString('user_id');
 
@@ -448,6 +954,66 @@ client.on('interactionCreate', async interaction => {
     }
 });
 
+// Handle select menu interactions
+client.on('interactionCreate', async interaction => {
+    if (!interaction.isStringSelectMenu()) return;
+    
+    if (interaction.customId === 'delete_api_key') {
+        const keyId = interaction.values[0];
+        
+        try {
+            const result = await deleteApiKey(interaction.user.id, keyId);
+            
+            if (!result.success) {
+                let description;
+                switch (result.error) {
+                    case 'USER_NOT_FOUND':
+                        description = 'User not found in database.';
+                        break;
+                    case 'KEY_NOT_FOUND':
+                        description = 'API key not found.';
+                        break;
+                    default:
+                        description = 'An error occurred while deleting your API key.';
+                }
+                
+                const embed = new EmbedBuilder()
+                    .setAuthor({ 
+                        name: interaction.user.username, 
+                        iconURL: interaction.user.displayAvatarURL() 
+                    })
+                    .setDescription(description)
+                    .setColor('#FFFFFF');
+                
+                return interaction.reply({ embeds: [embed], ephemeral: true });
+            }
+            
+            const embed = new EmbedBuilder()
+                .setAuthor({ 
+                    name: interaction.user.username, 
+                    iconURL: interaction.user.displayAvatarURL() 
+                })
+                .setTitle('API Key Deleted')
+                .setDescription(`Successfully deleted **${result.keyName}**`)
+                .setColor('#FFFFFF');
+            
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        } catch (error) {
+            console.error('API key deletion error:', error);
+            
+            const embed = new EmbedBuilder()
+                .setAuthor({ 
+                    name: interaction.user.username, 
+                    iconURL: interaction.user.displayAvatarURL() 
+                })
+                .setDescription('An error occurred while deleting your API key.')
+                .setColor('#FFFFFF');
+            
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+    }
+});
+
 // Handle button interactions
 client.on('interactionCreate', async interaction => {
     if (!interaction.isButton()) return;
@@ -474,8 +1040,88 @@ client.on('interactionCreate', async interaction => {
 // Handle modal submissions
 client.on('interactionCreate', async interaction => {
     if (!interaction.isModalSubmit()) return;
-
-    if (interaction.customId === 'link_form') {
+    
+    if (interaction.customId === 'roblox_verification') {
+        const username = interaction.fields.getTextInputValue('roblox_username');
+        const verification = serverVerifications.get(interaction.guild.id);
+        
+        if (!verification || verification.userId !== interaction.user.id) {
+            const embed = new EmbedBuilder()
+                .setAuthor({ 
+                    name: interaction.user.username, 
+                    iconURL: interaction.user.displayAvatarURL() 
+                })
+                .setTitle('Verification Failed')
+                .setDescription('Verification session expired. Please run `/verify` again.')
+                .setColor('#FFFFFF');
+            
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+        
+        try {
+            // Get Roblox user info
+            const robloxUser = await getRobloxUserFromUsername(username);
+            if (!robloxUser) {
+                const embed = new EmbedBuilder()
+                    .setAuthor({ 
+                        name: interaction.user.username, 
+                        iconURL: interaction.user.displayAvatarURL() 
+                    })
+                    .setTitle('Verification Failed')
+                    .setDescription('Roblox username not found. Please check your username and try again.')
+                    .setColor('#FFFFFF');
+                
+                return interaction.reply({ embeds: [embed], ephemeral: true });
+            }
+            
+            // Get user's status
+            const statusData = await getRobloxUserStatus(robloxUser.id);
+            if (!statusData || statusData.status !== verification.verificationText) {
+                const embed = new EmbedBuilder()
+                    .setAuthor({ 
+                        name: interaction.user.username, 
+                        iconURL: interaction.user.displayAvatarURL() 
+                    })
+                    .setTitle('Verification Failed')
+                    .setDescription(`Your Roblox status does not match the verification text. Please set your status to: **${verification.verificationText}**`)
+                    .setColor('#FFFFFF');
+                
+                return interaction.reply({ embeds: [embed], ephemeral: true });
+            }
+            
+            // Update verification with Roblox info
+            serverVerifications.set(interaction.guild.id, {
+                ...verification,
+                robloxUserId: robloxUser.id,
+                robloxUsername: robloxUser.name,
+                verified: true
+            });
+            
+            const embed = new EmbedBuilder()
+                .setAuthor({ 
+                    name: interaction.user.username, 
+                    iconURL: interaction.user.displayAvatarURL() 
+                })
+                .setTitle('Verification Successful')
+                .setDescription(`Successfully verified your Roblox account: **${robloxUser.name} (${robloxUser.id})**\n\nYou can now use the \`/setup\` command to set up your server.`)
+                .setColor('#FFFFFF');
+            
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        } catch (error) {
+            console.error('Roblox verification error:', error);
+            
+            const embed = new EmbedBuilder()
+                .setAuthor({ 
+                    name: interaction.user.username, 
+                    iconURL: interaction.user.displayAvatarURL() 
+                })
+                .setTitle('Verification Failed')
+                .setDescription('An error occurred during verification. Please try again.')
+                .setColor('#FFFFFF');
+            
+            return interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+    } else if (interaction.customId === 'link_form') {
         const code = interaction.fields.getTextInputValue('verification_code');
         
         // Validate the code
