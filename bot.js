@@ -566,19 +566,30 @@ async function joinGroupWithCookie(groupId, cookie) {
                 case 401:
                     return { success: false, error: 'Bot account authentication failed - invalid cookie' };
                 case 403:
+                    // Check for captcha challenge in headers
+                    if (error.response.headers['rblx-challenge-type'] === 'captcha') {
+                        return { 
+                            success: false, 
+                            error: 'Roblox captcha challenge detected. The bot account must be manually added to your group.',
+                            requiresManualJoin: true,
+                            groupName: groupResponse.data.name
+                        };
+                    }
+                    
                     if (data && data.errors && data.errors[0]) {
                         const errorCode = data.errors[0].code;
                         switch (errorCode) {
                             case 0: // Challenge required
                                 return { 
                                     success: false, 
-                                    error: 'Roblox security challenge required. Please manually add the bot account to your group.',
-                                    requiresManualJoin: true
+                                    error: 'Roblox security challenge required. The bot account must be manually added to your group.',
+                                    requiresManualJoin: true,
+                                    groupName: groupResponse.data.name
                                 };
                             case 1: // InsufficientPermissions
                                 return { success: false, error: 'Bot account does not have permission to join this group' };
                             case 2: // AlreadyInGroup
-                                return { success: true, groupName: 'Unknown Group', alreadyMember: true };
+                                return { success: true, groupName: groupResponse.data.name, alreadyMember: true };
                             case 3: // GroupFull
                                 return { success: false, error: 'The group is full and cannot accept new members' };
                             case 18: // GroupJoinRequiresApproval
@@ -588,8 +599,9 @@ async function joinGroupWithCookie(groupId, cookie) {
                                 if (message.toLowerCase().includes('challenge')) {
                                     return { 
                                         success: false, 
-                                        error: 'Roblox security challenge required. Please manually add the bot account to your group.',
-                                        requiresManualJoin: true
+                                        error: 'Roblox security challenge required. The bot account must be manually added to your group.',
+                                        requiresManualJoin: true,
+                                        groupName: groupResponse.data.name
                                     };
                                 }
                                 return { success: false, error: `Group join denied: ${message}` };
@@ -982,7 +994,7 @@ client.on('interactionCreate', async interaction => {
                 let description = `**Error:** ${joinResult.error}\n\n**Bot Account:** ${botUser.name} (${botUser.id})`;
                 
                 if (joinResult.requiresManualJoin) {
-                    description += `\n\n**Manual Setup Instructions:**\n1. Go to your Roblox group: https://www.roblox.com/groups/${groupId}\n2. Invite the bot account **${botUser.name}** to your group\n3. Once added, run \`/setup ${groupId}\` again to complete the setup`;
+                    description += `\n\n**REQUIRED: Manual Bot Addition**\n\n**Step 1:** Go to your group admin panel\n**Step 2:** Search for user **${botUser.name}** (ID: ${botUser.id})\n**Step 3:** Send them a group invite or accept their join request\n**Step 4:** Give them a role with ranking permissions\n**Step 5:** Run \`/setup ${groupId}\` again\n\n**The bot MUST be in your group to rank/exile users!**`;
                 }
                 
                 const embed = new EmbedBuilder()
